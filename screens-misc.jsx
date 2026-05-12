@@ -222,7 +222,26 @@ function MiniFlowRow({ flow, divider, onClick }) {
       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)" }}>{flow.name}</div>
-        <div className="dim" style={{ fontSize: 10.5, marginTop: 2, display: "flex", alignItems: "center", gap: 5 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4, flexWrap: "wrap" }}>
+          {srcs.map((c, i) => (
+            <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+              {i > 0 && <span style={{ color: "var(--muted)", fontSize: 10 }}>+</span>}
+              <span style={{ width: 7, height: 7, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>{c.name}</span>
+            </span>
+          ))}
+          <span style={{ color: "var(--muted)" }}>
+            {flow.direction === "two-way" ? <I.ArrowsLR size={10} /> : <I.ArrowRight size={10} />}
+          </span>
+          {dsts.map((c, i) => (
+            <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+              {i > 0 && <span style={{ color: "var(--muted)", fontSize: 10 }}>+</span>}
+              <span style={{ width: 7, height: 7, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>{c.name}</span>
+            </span>
+          ))}
+        </div>
+        <div className="dim" style={{ fontSize: 10.5, marginTop: 3, display: "flex", alignItems: "center", gap: 5 }}>
           <span className="tabnum">{flow.eventsSynced}</span> events
           <span style={{ color: "var(--muted)" }}>·</span>
           <span>last run {flow.lastRun || "2m ago"}</span>
