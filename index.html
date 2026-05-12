@@ -3715,24 +3715,31 @@ function MiniFlowRow({ flow, divider, onClick }) {
       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)" }}>{flow.name}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
-          {srcs.map((c, i) => (
-            <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-              {i > 0 && <span style={{ color: "var(--muted)", fontSize: 11 }}>+</span>}
-              <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 110 }}>{c.name}</span>
-            </span>
-          ))}
-          <span style={{ color: "var(--dim)", display: "flex", alignItems: "center", padding: "0 2px" }}>
-            {flow.direction === "two-way" ? <I.ArrowsLR size={12} /> : <I.ArrowRight size={12} />}
-          </span>
-          {dsts.map((c, i) => (
-            <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-              {i > 0 && <span style={{ color: "var(--muted)", fontSize: 11 }}>+</span>}
-              <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 110 }}>{c.name}</span>
-            </span>
-          ))}
+        <div style={{
+          display: "grid", gridTemplateColumns: "1fr 28px 1fr",
+          alignItems: "center", gap: 8, marginTop: 8,
+          background: "var(--surface)", border: "0.5px solid var(--border)",
+          borderRadius: 8, padding: "8px 10px",
+        }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {srcs.map(c => (
+              <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</span>
+              </span>
+            ))}
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", color: "var(--dim)" }}>
+            {flow.direction === "two-way" ? <I.ArrowsLR size={16} /> : <I.ArrowRight size={16} />}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {dsts.map(c => (
+              <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</span>
+              </span>
+            ))}
+          </div>
         </div>
         <div className="dim" style={{ fontSize: 10.5, marginTop: 3, display: "flex", alignItems: "center", gap: 5 }}>
           <span className="tabnum">{flow.eventsSynced}</span> events
