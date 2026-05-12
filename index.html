@@ -2326,6 +2326,8 @@ function CalendarsScreen() {
 
   const goDay = (y, m, d) => { setCurYear(y); setCurMonth(m); setCurDay(d); setView("day"); };
 
+  const weekDates = useMemoC(() => getWeekDates(curYear, curMonth, curDay), [curYear, curMonth, curDay]);
+  const dayDates = useMemoC(() => [{ year:curYear, month:curMonth, day:curDay }], [curYear, curMonth, curDay]);
   const availableTzs = ALL_TZ.filter(t => !tzList.find(e => e.id === t.id));
 
   return (
@@ -2356,7 +2358,7 @@ function CalendarsScreen() {
         )}
         {view === "week" && (
           <WeekDayGrid
-            dates={useMemoC(() => getWeekDates(curYear, curMonth, curDay), [curYear, curMonth, curDay])}
+            dates={weekDates}
             todayDate={todayDate} visibleCals={visibleCals}
             tzList={tzList} onRemoveTz={id => setExtraTzs(e=>e.filter(t=>t.id!==id))}
             onAddTz={() => setTzPickerOpen(true)} canAddTz={extraTzs.length < 2}
@@ -2365,7 +2367,7 @@ function CalendarsScreen() {
         )}
         {view === "day" && (
           <WeekDayGrid
-            dates={[{ year:curYear, month:curMonth, day:curDay }]}
+            dates={dayDates}
             todayDate={todayDate} visibleCals={visibleCals}
             tzList={tzList} onRemoveTz={id => setExtraTzs(e=>e.filter(t=>t.id!==id))}
             onAddTz={() => setTzPickerOpen(true)} canAddTz={extraTzs.length < 2}
