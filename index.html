@@ -1197,12 +1197,11 @@ function ColorSwatch({ value, onChange, size = 16 }) {
 function PageHeader({ title, subtitle, actions }) {
   return (
     <div style={{
-      padding: "12px 32px", display: "flex", alignItems: "center", gap: 16,
-      borderBottom: "0.5px solid var(--divider)", minHeight: 48,
+      padding: "16px 32px 12px", display: "flex", alignItems: "flex-start", gap: 16,
     }}>
-      <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 10 }}>
-        <h1 style={{ margin: 0, fontSize: 14, fontWeight: 500, letterSpacing: "-0.01em", lineHeight: 1, whiteSpace: "nowrap" }}>{title}</h1>
-        {subtitle && <span style={{ color: "var(--muted)", fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{subtitle}</span>}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <h1 style={{ margin: 0, fontSize: 14, fontWeight: 500, letterSpacing: "-0.01em", lineHeight: 1 }}>{title}</h1>
+        {subtitle && <div style={{ marginTop: 4, color: "var(--muted)", fontSize: 12 }}>{subtitle}</div>}
       </div>
       {actions && <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>{actions}</div>}
     </div>
