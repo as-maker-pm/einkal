@@ -2,10 +2,24 @@
 
 const { useState: useStateB, useMemo: useMemoB } = React;
 
+const TEAM_MEMBERS = [
+  { id:"tm1", name:"Sarah Chen",   role:"Engineering", email:"sarah@acme.co"  },
+  { id:"tm2", name:"Marcus Webb",  role:"Product",     email:"marcus@acme.co" },
+  { id:"tm3", name:"Priya Sharma", role:"Design",      email:"priya@acme.co"  },
+  { id:"tm4", name:"Jordan Blake", role:"Sales",       email:"jordan@acme.co" },
+  { id:"tm5", name:"Alex Rivera",  role:"Engineering", email:"alex@acme.co"   },
+];
+
+const ROUTING_OPTIONS = [
+  { value:"round-robin",     label:"Round-robin",      desc:"Rotate equally among selected members" },
+  { value:"first-available", label:"First available",  desc:"Book with whoever has the next open slot" },
+  { value:"collective",      label:"Collective",       desc:"All selected members must be free" },
+];
+
 const SEED_BOOKINGS = [
-  { id:"bk1", name:"30-min intro call",  slug:"intro-30",        type:"personal", duration:30, color:"#5ba6f0", active:true,  desc:"Quick intro to see if we're a good fit.",                location:"meet", days:[1,2,3,4,5], startH:9,  endH:17, buffer:15 },
-  { id:"bk2", name:"Team interview",     slug:"team-interview",  type:"team",     duration:60, color:"#a78bfa", active:true,  desc:"Engineering interview. Come prepared with examples.",    location:"zoom", days:[1,2,3,4,5], startH:10, endH:16, buffer:0  },
-  { id:"bk3", name:"Sprint planning",    slug:"sprint-planning", type:"team",     duration:45, color:"#34d399", active:false, desc:"Bi-weekly sprint planning for the core team.",            location:"meet", days:[1,3],       startH:14, endH:17, buffer:0  },
+  { id:"bk1", name:"30-min intro call",  slug:"intro-30",        type:"personal", duration:30, color:"#5ba6f0", active:true,  desc:"Quick intro to see if we're a good fit.",                location:"meet", days:[1,2,3,4,5], startH:9,  endH:17, buffer:15, members:[], routing:"round-robin" },
+  { id:"bk2", name:"Team interview",     slug:"team-interview",  type:"team",     duration:60, color:"#a78bfa", active:true,  desc:"Engineering interview. Come prepared with examples.",    location:"zoom", days:[1,2,3,4,5], startH:10, endH:16, buffer:0,  members:["tm1","tm5"], routing:"round-robin" },
+  { id:"bk3", name:"Sprint planning",    slug:"sprint-planning", type:"team",     duration:45, color:"#34d399", active:false, desc:"Bi-weekly sprint planning for the core team.",            location:"meet", days:[1,3],       startH:14, endH:17, buffer:0,  members:["tm1","tm2","tm3"], routing:"collective" },
 ];
 
 const LOCATION_OPTIONS = [
@@ -145,6 +159,32 @@ function BookingCard({ booking: b, onToggle, onEdit, onDelete }) {
           </div>
         </div>
 
+        {/* Members row for team links */}
+        {b.type === "team" && b.members?.length > 0 && (
+          <div style={{ marginBottom:10 }}>
+            <div style={{ fontSize:10, fontWeight:700, color:"var(--muted)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:7 }}>
+              Team members · {ROUTING_OPTIONS.find(r=>r.value===b.routing)?.label || "Round-robin"}
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+              {b.members.map(mid => {
+                const m = TEAM_MEMBERS.find(t => t.id === mid);
+                if (!m) return null;
+                return (
+                  <div key={mid} style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 8px 4px 4px", background:"var(--surface)", border:"0.5px solid var(--border)", borderRadius:20, fontSize:11.5 }}>
+                    <Avatar name={m.name} size={18} />
+                    <span style={{ color:"var(--text-2)" }}>{m.name.split(" ")[0]}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {b.type === "team" && (!b.members || b.members.length === 0) && (
+          <div style={{ marginBottom:10, fontSize:11.5, color:"var(--muted)", display:"flex", alignItems:"center", gap:6 }}>
+            <I.Team size={12} /> No members assigned yet
+          </div>
+        )}
+
         {/* Meta */}
         <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:12 }}>
           <MetaChip icon={<I.Clock size={11} />} label={`${b.duration} min`} />
@@ -199,14 +239,17 @@ function CreateBookingModal({ initial, onClose, onSave }) {
   const [startH,   setStartH]   = useStateB(initial?.startH   || 9);
   const [endH,     setEndH]     = useStateB(initial?.endH     || 17);
   const [buffer,   setBuffer]   = useStateB(initial?.buffer   || 0);
+  const [members,  setMembers]  = useStateB(initial?.members  || []);
+  const [routing,  setRouting]  = useStateB(initial?.routing  || "round-robin");
   const [step,     setStep]     = useStateB(0);
 
-  const toggleDay = (d) => setDays(ds => ds.includes(d) ? ds.filter(x=>x!==d) : [...ds, d].sort((a,b)=>a-b));
+  const toggleDay    = (d) => setDays(ds => ds.includes(d) ? ds.filter(x=>x!==d) : [...ds, d].sort((a,b)=>a-b));
+  const toggleMember = (id) => setMembers(ms => ms.includes(id) ? ms.filter(x=>x!==id) : [...ms, id]);
 
   const autoSlug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 
   const handleSave = () => {
-    onSave({ name: name || "Untitled link", slug: slug || autoSlug(name) || "my-link", type, duration, color, desc, location, days, startH, endH, buffer });
+    onSave({ name: name || "Untitled link", slug: slug || autoSlug(name) || "my-link", type, duration, color, desc, location, days, startH, endH, buffer, members, routing });
   };
 
   const HOURS = Array.from({length:24}, (_,i) => ({ value:i, label: i === 0 ? "12 am" : i < 12 ? `${i} am` : i === 12 ? "12 pm" : `${i-12} pm` }));
@@ -243,9 +286,60 @@ function CreateBookingModal({ initial, onClose, onSave }) {
           </div>
           <div>
             <label className="label">Type</label>
-            <Segmented value={type} onChange={setType} options={[{value:"personal",label:"Personal"},{value:"team",label:"Team"}]} />
-            <div className="help">{type==="personal" ? "Only you can accept bookings." : "Any team member can accept — round-robin or first available."}</div>
+            <Segmented value={type} onChange={v => { setType(v); if(v==="personal") setMembers([]); }} options={[{value:"personal",label:"Personal"},{value:"team",label:"Team"}]} />
+            <div className="help">{type==="personal" ? "Only you can accept bookings." : "Select members and choose how bookings are routed."}</div>
           </div>
+
+          {type === "team" && (
+            <div>
+              <label className="label">Team members</label>
+              <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:12 }}>
+                {TEAM_MEMBERS.map(m => {
+                  const on = members.includes(m.id);
+                  return (
+                    <button key={m.id} onClick={() => toggleMember(m.id)} style={{
+                      display:"flex", alignItems:"center", gap:12, padding:"10px 12px",
+                      background: on ? "color-mix(in oklab, var(--accent) 6%, var(--surface))" : "var(--surface)",
+                      border: `1.5px solid ${on ? "var(--accent)" : "var(--border)"}`,
+                      borderRadius:9, textAlign:"left", transition:"all 0.12s",
+                    }}>
+                      <Avatar name={m.name} size={28} />
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:13, fontWeight:500 }}>{m.name}</div>
+                        <div style={{ fontSize:11, color:"var(--muted)" }}>{m.role} · {m.email}</div>
+                      </div>
+                      <div style={{ width:18, height:18, borderRadius:4, border:`2px solid ${on ? "var(--accent)" : "var(--border)"}`, background: on ? "var(--accent)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.12s" }}>
+                        {on && <I.Check size={11} style={{ color:"var(--ink-on-accent)" }} />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {members.length > 0 && (
+                <div>
+                  <label className="label">Booking routing</label>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    {ROUTING_OPTIONS.map(r => (
+                      <button key={r.value} onClick={() => setRouting(r.value)} style={{
+                        display:"flex", alignItems:"center", gap:12, padding:"9px 12px",
+                        background: routing===r.value ? "color-mix(in oklab, var(--accent) 6%, var(--surface))" : "var(--surface)",
+                        border: `1.5px solid ${routing===r.value ? "var(--accent)" : "var(--border)"}`,
+                        borderRadius:8, textAlign:"left", transition:"all 0.12s",
+                      }}>
+                        <div style={{ width:14, height:14, borderRadius:"50%", border:`2px solid ${routing===r.value ? "var(--accent)" : "var(--border)"}`, background: routing===r.value ? "var(--accent)" : "transparent", flexShrink:0, transition:"all 0.12s" }} />
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:13, fontWeight:500 }}>{r.label}</div>
+                          <div style={{ fontSize:11, color:"var(--muted)", marginTop:1 }}>{r.desc}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {members.length === 0 && <div style={{ fontSize:12, color:"var(--muted)", padding:"8px 0" }}>Select at least one member to continue.</div>}
+            </div>
+          )}
+
           <div>
             <label className="label">Duration</label>
             <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
