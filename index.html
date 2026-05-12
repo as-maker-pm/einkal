@@ -3715,22 +3715,22 @@ function MiniFlowRow({ flow, divider, onClick }) {
       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)" }}>{flow.name}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
           {srcs.map((c, i) => (
-            <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-              {i > 0 && <span style={{ color: "var(--muted)", fontSize: 10 }}>+</span>}
-              <span style={{ width: 7, height: 7, borderRadius: 2, background: c.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>{c.name}</span>
+            <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              {i > 0 && <span style={{ color: "var(--muted)", fontSize: 11 }}>+</span>}
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 110 }}>{c.name}</span>
             </span>
           ))}
-          <span style={{ color: "var(--muted)" }}>
-            {flow.direction === "two-way" ? <I.ArrowsLR size={10} /> : <I.ArrowRight size={10} />}
+          <span style={{ color: "var(--dim)", display: "flex", alignItems: "center", padding: "0 2px" }}>
+            {flow.direction === "two-way" ? <I.ArrowsLR size={12} /> : <I.ArrowRight size={12} />}
           </span>
           {dsts.map((c, i) => (
-            <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-              {i > 0 && <span style={{ color: "var(--muted)", fontSize: 10 }}>+</span>}
-              <span style={{ width: 7, height: 7, borderRadius: 2, background: c.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>{c.name}</span>
+            <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              {i > 0 && <span style={{ color: "var(--muted)", fontSize: 11 }}>+</span>}
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 110 }}>{c.name}</span>
             </span>
           ))}
         </div>
