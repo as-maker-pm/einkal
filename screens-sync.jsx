@@ -119,31 +119,37 @@ function FlowCard({ flow, onOpen, onTogglePause, onDelete }) {
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-hi)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}>
 
-      {/* Title row */}
-      <div style={{ padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, borderBottom: "0.5px solid var(--divider)" }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14.5, fontWeight: 500, color: "var(--text)" }}>{flow.name}</div>
-          <div className="dim" style={{ fontSize: 11, marginTop: 2 }}>
-            Last run <span style={{ color: "var(--text-2)" }}>{flow.lastRun}</span> · <span style={{ color: "var(--text-2)" }} className="tabnum">{flow.eventsSynced.toLocaleString()}</span> events
+      {/* Header section — dark bg */}
+      <div style={{ background: "var(--bg-1)", borderBottom: "0.5px solid var(--divider)" }}>
+        <div style={{ padding: "12px 18px", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14.5, fontWeight: 500, color: "var(--text)" }}>{flow.name}</div>
+            <div className="dim" style={{ fontSize: 11, marginTop: 2 }}>
+              Last run <span style={{ color: "var(--text-2)" }}>{flow.lastRun}</span> · <span style={{ color: "var(--text-2)" }} className="tabnum">{flow.eventsSynced.toLocaleString()}</span> events
+            </div>
           </div>
+          {flow.paused
+            ? <span className="dim" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--muted)" }} /> Paused
+              </span>
+            : <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--text-2)" }}>
+                <span className="pulse" /> Running
+              </span>}
+          <div style={{ width: 0.5, height: 16, background: "var(--divider)", margin: "0 4px" }} />
+          <button className="iconbtn" onClick={(e) => { e.stopPropagation(); onTogglePause(); }} data-tip={flow.paused ? "Resume" : "Pause"}>
+            {flow.paused ? <I.Play size={13} /> : <I.Pause size={13} />}
+          </button>
+          <button className="iconbtn" onClick={(e) => { e.stopPropagation(); onDelete(); }} data-tip="Delete"><I.Trash size={13} /></button>
+          <I.Chevron size={13} style={{ color: "var(--muted)" }} />
         </div>
-        {flow.paused
-          ? <span className="dim" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--muted)" }} /> Paused
-            </span>
-          : <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--text-2)" }}>
-              <span className="pulse" /> Running
-            </span>}
-        <div style={{ width: 0.5, height: 16, background: "var(--divider)", margin: "0 4px" }} />
-        <button className="iconbtn" onClick={(e) => { e.stopPropagation(); onTogglePause(); }} data-tip={flow.paused ? "Resume" : "Pause"}>
-          {flow.paused ? <I.Play size={13} /> : <I.Pause size={13} />}
-        </button>
-        <button className="iconbtn" onClick={(e) => { e.stopPropagation(); onDelete(); }} data-tip="Delete"><I.Trash size={13} /></button>
-        <I.Chevron size={13} style={{ color: "var(--muted)" }} />
+        <div style={{ padding: "0 18px 10px", display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-2)" }}>
+          <I.Lock size={11} style={{ color: "var(--dim)" }} />
+          <span>{summary}</span>
+        </div>
       </div>
 
-      {/* From → To */}
-      <div style={{ padding: "10px 18px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+      {/* From → To — at bottom */}
+      <div style={{ padding: "12px 18px 14px", display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <div className="dim" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 2 }}>From</div>
           {srcs.slice(0, 3).map(c => (
@@ -167,18 +173,6 @@ function FlowCard({ flow, onOpen, onTogglePause, onDelete }) {
           ))}
           {dsts.length > 3 && <span className="dim" style={{ fontSize: 11 }}>+{dsts.length - 3} more</span>}
         </div>
-      </div>
-
-      {/* Plain-language footer */}
-      <div style={{
-        padding: "10px 18px",
-        borderTop: "0.5px solid var(--divider)",
-        background: "var(--bg-1)",
-        display: "flex", alignItems: "center", gap: 8,
-        fontSize: 12, color: "var(--text-2)",
-      }}>
-        <I.Lock size={11} style={{ color: "var(--dim)" }} />
-        <span>{summary}</span>
       </div>
     </button>
   );

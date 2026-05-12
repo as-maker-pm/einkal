@@ -40,7 +40,7 @@ function DashboardScreen({ onNav }) {
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14 }}>
           {/* flows preview — primary */}
           <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-            <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, borderBottom: "0.5px solid var(--divider)" }}>
+            <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, borderBottom: "0.5px solid var(--divider)", background: "var(--bg-1)" }}>
               <div style={{ fontSize: 13.5, fontWeight: 500 }}>Sync flows</div>
               <span className="dim" style={{ fontSize: 12 }}>· {activeFlows.length} running</span>
               <div style={{ flex: 1 }} />
@@ -221,7 +221,20 @@ function MiniFlowRow({ flow, divider, onClick }) {
       onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface)"}
       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)" }}>{flow.name}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {flow.paused
+            ? <span className="dim" style={{ fontSize: 10.5 }}>Paused</span>
+            : <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10.5, color: "var(--text-2)" }}>
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--ok)", flexShrink: 0 }} />
+                Running
+              </span>}
+          <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)" }}>{flow.name}</div>
+        </div>
+        <div className="dim" style={{ fontSize: 10.5, marginTop: 3, display: "flex", alignItems: "center", gap: 5 }}>
+          <span className="tabnum">{flow.eventsSynced}</span> events
+          <span style={{ color: "var(--muted)" }}>·</span>
+          <span>last run {flow.lastRun || "2m ago"}</span>
+        </div>
         <div style={{
           display: "flex", alignItems: "center", gap: 8, marginTop: 8,
           background: "var(--surface)", border: "0.5px solid var(--border)",
@@ -247,21 +260,6 @@ function MiniFlowRow({ flow, divider, onClick }) {
             ))}
           </div>
         </div>
-        <div className="dim" style={{ fontSize: 10.5, marginTop: 3, display: "flex", alignItems: "center", gap: 5 }}>
-          <span className="tabnum">{flow.eventsSynced}</span> events
-          <span style={{ color: "var(--muted)" }}>·</span>
-          <span>last run {flow.lastRun || "2m ago"}</span>
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10.5 }}>
-        {flow.paused ? (
-          <span className="dim">Paused</span>
-        ) : (
-          <>
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--ok)" }} />
-            <span style={{ color: "var(--text-2)" }}>Running</span>
-          </>
-        )}
       </div>
       <I.Chevron size={13} style={{ color: "var(--dim)" }} />
     </button>
