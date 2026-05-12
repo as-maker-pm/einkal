@@ -223,27 +223,26 @@ function MiniFlowRow({ flow, divider, onClick }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)" }}>{flow.name}</div>
         <div style={{
-          display: "grid", gridTemplateColumns: "1fr 18px 1fr",
-          alignItems: "center", gap: 0, marginTop: 8,
+          display: "flex", alignItems: "center", gap: 8, marginTop: 8,
           background: "var(--surface)", border: "0.5px solid var(--border)",
           borderRadius: 8, padding: "8px 10px",
         }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {srcs.map(c => (
-              <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: "100%", overflow: "hidden" }}>
-                <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{c.name}</span>
+              <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap" }}>{c.name}</span>
               </span>
             ))}
           </div>
-          <div style={{ display: "flex", justifyContent: "center", color: "var(--dim)" }}>
+          <div style={{ color: "var(--dim)", flexShrink: 0 }}>
             {flow.direction === "two-way" ? <I.ArrowsLR size={16} /> : <I.ArrowRight size={16} />}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {dsts.map(c => (
               <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</span>
+                <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap" }}>{c.name}</span>
               </span>
             ))}
           </div>

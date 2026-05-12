@@ -143,21 +143,18 @@ function FlowCard({ flow, onOpen, onTogglePause, onDelete }) {
       </div>
 
       {/* From → To */}
-      <div style={{
-        padding: "10px 18px 14px",
-        display: "grid", gridTemplateColumns: "1fr 18px 1fr", gap: 0, alignItems: "center",
-      }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
+      <div style={{ padding: "10px 18px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <div className="dim" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 2 }}>From</div>
           {srcs.slice(0, 3).map(c => (
-            <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: "100%", overflow: "hidden" }}>
-              <span style={{ fontSize: 12.5, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{c.name}</span>
+            <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 12.5, color: "var(--text)", whiteSpace: "nowrap" }}>{c.name}</span>
             </span>
           ))}
           {srcs.length > 3 && <span className="dim" style={{ fontSize: 11 }}>+{srcs.length - 3} more</span>}
         </div>
-        <div style={{ display: "flex", justifyContent: "center", color: "var(--dim)" }}>
+        <div style={{ color: "var(--dim)", flexShrink: 0 }}>
           {flow.direction === "two-way" ? <I.ArrowsLR size={18} /> : <I.ArrowRight size={18} />}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -165,7 +162,7 @@ function FlowCard({ flow, onOpen, onTogglePause, onDelete }) {
           {dsts.slice(0, 3).map(c => (
             <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 12.5, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</span>
+              <span style={{ fontSize: 12.5, color: "var(--text)", whiteSpace: "nowrap" }}>{c.name}</span>
             </span>
           ))}
           {dsts.length > 3 && <span className="dim" style={{ fontSize: 11 }}>+{dsts.length - 3} more</span>}
