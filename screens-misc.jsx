@@ -228,11 +228,11 @@ function MiniFlowRow({ flow, divider, onClick }) {
           background: "var(--surface)", border: "0.5px solid var(--border)",
           borderRadius: 8, padding: "8px 10px",
         }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
             {srcs.map(c => (
-              <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: "100%", overflow: "hidden" }}>
+                <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{c.name}</span>
                 <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</span>
               </span>
             ))}
           </div>
