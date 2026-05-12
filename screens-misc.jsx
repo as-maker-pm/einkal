@@ -6,7 +6,9 @@ const { useState: useStateM, useMemo: useMemoM } = React;
 // Dashboard
 // ───────────────────────────────────────────────────────────────
 function DashboardScreen({ onNav }) {
-  const { state } = useStore();
+  const { state, addAccount, pushActivity } = useStore();
+  const toast = useToast();
+  const [connectOpen, setConnectOpen] = useStateM(false);
   const activeFlows = state.flows.filter(f => !f.paused);
   const totalSynced = state.flows.reduce((s, f) => s + f.eventsSynced, 0);
   const calCount = state.accounts.reduce((s, a) => s + a.calendars.length, 0);
@@ -17,7 +19,7 @@ function DashboardScreen({ onNav }) {
         title={`Hey, ${state.user.name.split(" ")[0]}.`}
         actions={
           <>
-            <button className="btn" onClick={() => onNav("calendars")}><I.Plus size={13} /> Connect calendar</button>
+            <button className="btn" onClick={() => setConnectOpen(true)}><I.Plus size={13} /> Connect calendar</button>
             <button className="btn primary" onClick={() => onNav("sync", { newFlow: true })}><I.Plus size={13} /> New flow</button>
           </>
         }
@@ -64,6 +66,12 @@ function DashboardScreen({ onNav }) {
           </div>
         </div>
       </div>
+      <ConnectModal open={connectOpen} onClose={() => setConnectOpen(false)} onConnect={(acc) => {
+        addAccount(acc);
+        pushActivity(`Connected ${acc.email}`, "connect");
+        toast(`Connected ${acc.email}`, "ok");
+        setConnectOpen(false);
+      }} />
     </div>
   );
 }
