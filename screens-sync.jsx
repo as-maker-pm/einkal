@@ -145,7 +145,7 @@ function FlowCard({ flow, onOpen, onTogglePause, onDelete }) {
       {/* From → To */}
       <div style={{
         padding: "10px 18px 14px",
-        display: "grid", gridTemplateColumns: "1fr 24px 1fr", gap: 6, alignItems: "center",
+        display: "grid", gridTemplateColumns: "1fr 20px 1fr", gap: 2, alignItems: "center",
       }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <div className="dim" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 2 }}>From</div>

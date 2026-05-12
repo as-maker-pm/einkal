@@ -223,8 +223,8 @@ function MiniFlowRow({ flow, divider, onClick }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)" }}>{flow.name}</div>
         <div style={{
-          display: "grid", gridTemplateColumns: "1fr 24px 1fr",
-          alignItems: "center", gap: 6, marginTop: 8,
+          display: "grid", gridTemplateColumns: "1fr 20px 1fr",
+          alignItems: "center", gap: 2, marginTop: 8,
           background: "var(--surface)", border: "0.5px solid var(--border)",
           borderRadius: 8, padding: "8px 10px",
         }}>
