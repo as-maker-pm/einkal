@@ -1,0 +1,4219 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EinKal — calendar sync for teams</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+/* EinKal — Wise-inspired, lively palette. Inter throughout. */
+
+:root {
+  /* Dark (default) — cal.com neutral grays, green accent */
+  --bg: #0a0a0a;
+  --bg-1: #0e0e0e;
+  --panel: #131313;
+  --surface: #1a1a1a;
+  --surface-hi: #1f1f1f;
+  --hover: #242424;
+  --border: #262626;
+  --border-hi: #333333;
+  --divider: #1c1c1c;
+  --text: #fafafa;
+  --text-2: #d4d4d4;
+  --dim: #888888;
+  --muted: #5a5a5a;
+  --accent: #fafafa;          /* monotone, ChatGPT-like */
+  --accent-hi: #ffffff;
+  --accent-dim: #404040;
+  --accent-bg: rgba(250, 250, 250, 0.08);
+  --ink-on-accent: #0a0a0a;
+  --info: #a0a0a0;
+  --danger: #ff7a6b;
+  --warn: #ffcc4c;
+  --ok: #4ade80;
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -12px rgba(0,0,0,0.5);
+  --shadow-pop: 0 20px 60px -20px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(255,255,255,0.06);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --font-ui: "Inter", "Manrope", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
+  --font-display: "Inter", "Manrope", ui-sans-serif, sans-serif;
+}
+
+html[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-1: #fafafa;
+  --panel: #ffffff;
+  --surface: #f5f5f5;
+  --surface-hi: #ededed;
+  --hover: #e8e8e8;
+  --border: #e5e5e5;
+  --border-hi: #d4d4d4;
+  --divider: #f0f0f0;
+  --text: #111111;
+  --text-2: #404040;
+  --dim: #737373;
+  --muted: #a3a3a3;
+  --accent: #0a0a0a;
+  --accent-hi: #000000;
+  --accent-dim: #d4d4d4;
+  --accent-bg: rgba(10, 10, 10, 0.06);
+  --ink-on-accent: #ffffff;
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px -12px rgba(0,0,0,0.10);
+  --shadow-pop: 0 20px 50px -20px rgba(0,0,0,0.20), 0 0 0 0.5px rgba(0,0,0,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-feature-settings: "cv11", "ss01";
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+  letter-spacing: -0.005em;
+}
+
+button { font: inherit; color: inherit; background: none; border: 0; cursor: default; padding: 0; }
+input, textarea, select { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+::selection { background: var(--accent); color: var(--ink-on-accent); }
+
+/* scrollbars */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--border-hi); background-clip: content-box; border: 2px solid transparent; }
+
+/* primitives */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 13px;
+  border-radius: 999px;
+  font-size: 12.5px; font-weight: 500; letter-spacing: -0.005em;
+  color: var(--text);
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  transition: background 0.12s, border-color 0.12s, transform 0.12s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--hover); border-color: var(--border-hi); }
+.btn:active { transform: translateY(0.5px); }
+.btn.sm { height: 26px; padding: 0 10px; font-size: 11.5px; gap: 4px; }
+.btn.lg { height: 32px; padding: 0 16px; font-size: 13px; font-weight: 600; }
+.btn.primary {
+  background: var(--accent); color: var(--ink-on-accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.btn.primary:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--text-2); }
+.btn.ghost:hover { background: var(--hover); color: var(--text); }
+.btn.outline { background: transparent; }
+.btn.danger { color: var(--danger); }
+.btn.danger:hover { background: color-mix(in oklab, var(--danger) 12%, transparent); border-color: color-mix(in oklab, var(--danger) 40%, var(--border)); }
+.btn[disabled] { opacity: 0.45; pointer-events: none; }
+
+.iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 8px;
+  color: var(--text-2);
+  transition: background 0.12s, color 0.12s;
+}
+.iconbtn:hover { background: var(--hover); color: var(--text); }
+.iconbtn.sm { width: 22px; height: 22px; border-radius: 6px; }
+
+.input, .textarea, .select {
+  width: 100%;
+  height: 38px;
+  padding: 0 13px;
+  background: var(--bg-1);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.12s, background 0.12s;
+}
+.input:focus, .textarea:focus, .select:focus {
+  border-color: var(--border-hi);
+  background: var(--bg);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+.textarea { height: auto; min-height: 80px; padding: 10px 13px; line-height: 1.45; resize: vertical; }
+.input::placeholder, .textarea::placeholder { color: var(--muted); }
+
+.label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-2);
+  letter-spacing: 0;
+  margin-bottom: 6px;
+}
+.help {
+  font-size: 11.5px;
+  color: var(--dim);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.card {
+  background: var(--panel);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  font-family: var(--font-mono); font-size: 10.5px;
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: 4px; color: var(--dim);
+}
+
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 22px; padding: 0 9px;
+  font-size: 11.5px; font-weight: 500;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  color: var(--text-2);
+}
+.chip.dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.toggle {
+  --w: 30px; --h: 18px;
+  position: relative; width: var(--w); height: var(--h);
+  border-radius: 999px;
+  background: var(--surface-hi);
+  border: 0.5px solid var(--border);
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.toggle::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--dim);
+  transition: transform 0.15s, background 0.15s;
+}
+.toggle.on { background: var(--accent); border-color: var(--accent); }
+.toggle.on::after { transform: translateX(12px); background: var(--ink-on-accent); }
+
+.hr { height: 0.5px; background: var(--divider); border: 0; margin: 0; }
+
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  background: var(--surface-hi); color: var(--text); font-size: 11px;
+  padding: 4px 7px; border-radius: 5px; white-space: nowrap;
+  border: 0.5px solid var(--border-hi);
+  pointer-events: none; z-index: 50;
+}
+
+.row { display: flex; align-items: center; }
+.col { display: flex; flex-direction: column; }
+.gap-1 { gap: 4px; } .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; } .gap-6 { gap: 24px; }
+.flex-1 { flex: 1 1 auto; min-width: 0; }
+.spacer { flex: 1 1 auto; }
+.mono { font-family: var(--font-mono); }
+.serif { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
+.dim { color: var(--dim); }
+.muted { color: var(--muted); }
+.t2 { color: var(--text-2); }
+.tabnum { font-variant-numeric: tabular-nums; }
+
+.pulse {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--ok) 60%, transparent);
+  animation: pulse 2.2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--ok) 60%, transparent); }
+  70% { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+#root { width: 100vw; height: 100vh; display: flex; }
+
+.app {
+  width: 100%; height: 100%;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  background: var(--bg);
+}
+
+.fade-in { animation: fade-in 0.25s ease; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.mesh {
+  background:
+    radial-gradient(circle at 12% 18%, color-mix(in oklab, var(--accent) 30%, transparent), transparent 50%),
+    radial-gradient(circle at 88% 12%, color-mix(in oklab, #7ec5ff 22%, transparent), transparent 50%),
+    radial-gradient(circle at 78% 88%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 55%),
+    var(--bg);
+}
+
+.hairline { box-shadow: inset 0 -0.5px 0 var(--divider); }
+.focus-ring:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- tweaks-panel -->
+  <script type="text/babel" data-presets="react">
+
+// tweaks-panel.jsx
+// Reusable Tweaks shell + form-control helpers.
+//
+// Owns the host protocol (listens for __activate_edit_mode / __deactivate_edit_mode,
+// posts __edit_mode_available / __edit_mode_set_keys / __edit_mode_dismissed) so
+// individual prototypes don't re-roll it. Ships a consistent set of controls so you
+// don't hand-draw <input type="range">, segmented radios, steppers, etc.
+//
+// Usage (in an HTML file that loads React + Babel):
+//
+//   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+//     "primaryColor": "#D97757",
+//     "palette": ["#D97757", "#29261b", "#f6f4ef"],
+//     "fontSize": 16,
+//     "density": "regular",
+//     "dark": false
+//   }/*EDITMODE-END*/;
+//
+//   function App() {
+//     const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+//     return (
+//       <div style={{ fontSize: t.fontSize, color: t.primaryColor }}>
+//         Hello
+//         <TweaksPanel>
+//           <TweakSection label="Typography" />
+//           <TweakSlider label="Font size" value={t.fontSize} min={10} max={32} unit="px"
+//                        onChange={(v) => setTweak('fontSize', v)} />
+//           <TweakRadio  label="Density" value={t.density}
+//                        options={['compact', 'regular', 'comfy']}
+//                        onChange={(v) => setTweak('density', v)} />
+//           <TweakSection label="Theme" />
+//           <TweakColor  label="Primary" value={t.primaryColor}
+//                        options={['#D97757', '#2A6FDB', '#1F8A5B', '#7A5AE0']}
+//                        onChange={(v) => setTweak('primaryColor', v)} />
+//           <TweakColor  label="Palette" value={t.palette}
+//                        options={[['#D97757', '#29261b', '#f6f4ef'],
+//                                  ['#475569', '#0f172a', '#f1f5f9']]}
+//                        onChange={(v) => setTweak('palette', v)} />
+//           <TweakToggle label="Dark mode" value={t.dark}
+//                        onChange={(v) => setTweak('dark', v)} />
+//         </TweaksPanel>
+//       </div>
+//     );
+//   }
+//
+// ─────────────────────────────────────────────────────────────────────────────
+
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-body::-webkit-scrollbar{width:8px}
+  .twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}
+  .twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;
+    border:2px solid transparent;background-clip:content-box}
+  .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
+    border:2px solid transparent;background-clip:content-box}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+
+  .twk-field{appearance:none;width:100%;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
+
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;
+    overflow-wrap:anywhere}
+
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+
+  .twk-num{display:flex;align-items:center;height:26px;padding:0 0 0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}
+  .twk-num-lbl{font-weight:500;color:rgba(41,38,27,.6);cursor:ew-resize;
+    user-select:none;padding-right:8px}
+  .twk-num input{flex:1;min-width:0;height:100%;border:0;background:transparent;
+    font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:0 8px 0 0;
+    outline:none;color:inherit;-moz-appearance:textfield}
+  .twk-num input::-webkit-inner-spin-button,.twk-num input::-webkit-outer-spin-button{
+    -webkit-appearance:none;margin:0}
+  .twk-num-unit{padding-right:8px;color:rgba(41,38,27,.45)}
+
+  .twk-btn{appearance:none;height:26px;padding:0 12px;border:0;border-radius:7px;
+    background:rgba(0,0,0,.78);color:#fff;font:inherit;font-weight:500;cursor:default}
+  .twk-btn:hover{background:rgba(0,0,0,.88)}
+  .twk-btn.secondary{background:rgba(0,0,0,.06);color:inherit}
+  .twk-btn.secondary:hover{background:rgba(0,0,0,.1)}
+
+  .twk-swatch{appearance:none;-webkit-appearance:none;width:56px;height:22px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:6px;padding:0;cursor:default;
+    background:transparent;flex-shrink:0}
+  .twk-swatch::-webkit-color-swatch-wrapper{padding:0}
+  .twk-swatch::-webkit-color-swatch{border:0;border-radius:5.5px}
+  .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
+
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),
+    0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip>span{position:absolute;top:0;bottom:0;right:0;width:34%;
+    display:flex;flex-direction:column;box-shadow:-1px 0 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i{flex:1;box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i:first-child{box-shadow:none}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+`;
+
+// ── useTweaks ───────────────────────────────────────────────────────────────
+// Single source of truth for tweak values. setTweak persists via the host
+// (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  // Accepts either setTweak('key', value) or setTweak({ key: value, ... }) so a
+  // useState-style call doesn't write a "[object Object]" key into the persisted
+  // JSON block.
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    // Same-window signal so in-page listeners (deck-stage rail thumbnails)
+    // can react — the parent message only reaches the host, not peers.
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+// ── TweaksPanel ─────────────────────────────────────────────────────────────
+// Floating shell. Registers the protocol listener BEFORE announcing
+// availability — if the announce ran first, the host's activate could land
+// before our handler exists and the toolbar toggle would silently no-op.
+// The close button posts __edit_mode_dismissed so the host's toolbar toggle
+// flips off in lockstep; the host echoes __deactivate_edit_mode back which
+// is what actually hides the panel.
+function TweaksPanel({ title = 'Tweaks', noDeckControls = false, children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  // Auto-inject a rail toggle when a <deck-stage> is on the page. The
+  // toggle drives the deck's per-viewer _railVisible via window message;
+  // state is mirrored from the same localStorage key the deck reads so
+  // the control reflects reality across reloads. The mechanism is the
+  // message — authors who want custom placement can post it directly
+  // and pass noDeckControls to suppress this one.
+  const hasDeckStage = React.useMemo(
+    () => typeof document !== 'undefined' && !!document.querySelector('deck-stage'),
+    [],
+  );
+  // Hide the toggle until the host has actually enabled the rail (the
+  // __omelette_rail_enabled window message, posted only when the
+  // omelette_deck_rail_enabled flag is on for this user). The initial read
+  // covers TweaksPanel mounting after the message already arrived; the
+  // listener covers the common case of mounting first.
+  const [railEnabled, setRailEnabled] = React.useState(
+    () => hasDeckStage && !!document.querySelector('deck-stage')?._railEnabled,
+  );
+  React.useEffect(() => {
+    if (!hasDeckStage || railEnabled) return undefined;
+    const onMsg = (e) => {
+      if (e.data && e.data.type === '__omelette_rail_enabled') setRailEnabled(true);
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, [hasDeckStage, railEnabled]);
+  const [railVisible, setRailVisible] = React.useState(() => {
+    try { return localStorage.getItem('deck-stage.railVisible') !== '0'; } catch (e) { return true; }
+  });
+  const toggleRail = (on) => {
+    setRailVisible(on);
+    window.postMessage({ type: '__deck_rail_visible', on }, '*');
+  };
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', clampToViewport);
+      return () => window.removeEventListener('resize', clampToViewport);
+    }
+    const ro = new ResizeObserver(clampToViewport);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => {
+    setOpen(false);
+    window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+  };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - sy),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" data-noncommentable=""
+           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" aria-label="Close tweaks"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">
+          {children}
+          {hasDeckStage && railEnabled && !noDeckControls && (
+            <TweakSection label="Deck">
+              <TweakToggle label="Thumbnail rail" value={railVisible} onChange={toggleRail} />
+            </TweakSection>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Layout helpers ──────────────────────────────────────────────────────────
+
+function TweakSection({ label, children }) {
+  return (
+    <>
+      <div className="twk-sect">{label}</div>
+      {children}
+    </>
+  );
+}
+
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl">
+        <span>{label}</span>
+        {value != null && <span className="twk-val">{value}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <TweakRow label={label} value={`${value}${unit}`}>
+      <input type="range" className="twk-slider" min={min} max={max} step={step}
+             value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </TweakRow>
+  );
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'}
+              role="switch" aria-checked={!!value}
+              onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  // The active value is read by pointer-move handlers attached for the lifetime
+  // of a drag — ref it so a stale closure doesn't fire onChange for every move.
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+
+  // Segments wrap mid-word once per-segment width runs out. The track is
+  // ~248px (280 panel − 28 body pad − 4 seg pad), each button loses 12px
+  // to its own padding, and 11.5px system-ui averages ~6.3px/char — so 2
+  // options fit ~16 chars each, 3 fit ~10. Past that (or >3 options), fall
+  // back to a dropdown rather than wrap.
+  const labelLen = (o) => String(typeof o === 'object' ? o.label : o).length;
+  const maxLen = options.reduce((m, o) => Math.max(m, labelLen(o)), 0);
+  const fitsAsSegments = maxLen <= ({ 2: 16, 3: 10 }[options.length] ?? 0);
+  if (!fitsAsSegments) {
+    // <select> emits strings — map back to the original option value so the
+    // fallback stays type-preserving (numbers, booleans) like the segment path.
+    const resolve = (s) => {
+      const m = options.find((o) => String(typeof o === 'object' ? o.value : o) === s);
+      return m === undefined ? s : typeof m === 'object' ? m.value : m;
+    };
+    return <TweakSelect label={label} value={value} options={options}
+                        onChange={(s) => onChange(resolve(s))} />;
+  }
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+
+  const segAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const inner = r.width - 4;
+    const i = Math.floor(((clientX - r.left - 2) / inner) * n);
+    return opts[Math.max(0, Math.min(n - 1, i))].value;
+  };
+
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX);
+    if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => {
+      if (!trackRef.current) return;
+      const v = segAt(ev.clientX);
+      if (v !== valueRef.current) onChange(v);
+    };
+    const up = () => {
+      setDragging(false);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown}
+           className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb"
+             style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`,
+                      width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => {
+          const v = typeof o === 'object' ? o.value : o;
+          const l = typeof o === 'object' ? o.label : o;
+          return <option key={v} value={v}>{l}</option>;
+        })}
+      </select>
+    </TweakRow>
+  );
+}
+
+function TweakText({ label, value, placeholder, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <input className="twk-field" type="text" value={value} placeholder={placeholder}
+             onChange={(e) => onChange(e.target.value)} />
+    </TweakRow>
+  );
+}
+
+function TweakNumber({ label, value, min, max, step = 1, unit = '', onChange }) {
+  const clamp = (n) => {
+    if (min != null && n < min) return min;
+    if (max != null && n > max) return max;
+    return n;
+  };
+  const startRef = React.useRef({ x: 0, val: 0 });
+  const onScrubStart = (e) => {
+    e.preventDefault();
+    startRef.current = { x: e.clientX, val: value };
+    const decimals = (String(step).split('.')[1] || '').length;
+    const move = (ev) => {
+      const dx = ev.clientX - startRef.current.x;
+      const raw = startRef.current.val + dx * step;
+      const snapped = Math.round(raw / step) * step;
+      onChange(clamp(Number(snapped.toFixed(decimals))));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return (
+    <div className="twk-num">
+      <span className="twk-num-lbl" onPointerDown={onScrubStart}>{label}</span>
+      <input type="number" value={value} min={min} max={max} step={step}
+             onChange={(e) => onChange(clamp(Number(e.target.value)))} />
+      {unit && <span className="twk-num-unit">{unit}</span>}
+    </div>
+  );
+}
+
+// Relative-luminance contrast pick — checkmarks drawn over a swatch need to
+// read on both #111 and #fafafa without per-option configuration. Hex input
+// only (#rgb / #rrggbb); named or rgb()/hsl() colors fall through to "light".
+function __twkIsLight(hex) {
+  const h = String(hex).replace('#', '');
+  const x = h.length === 3 ? h.replace(/./g, (c) => c + c) : h.padEnd(6, '0');
+  const n = parseInt(x.slice(0, 6), 16);
+  if (Number.isNaN(n)) return true;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return r * 299 + g * 587 + b * 114 > 148000;
+}
+
+const __TwkCheck = ({ light }) => (
+  <svg viewBox="0 0 14 14" aria-hidden="true">
+    <path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2"
+          strokeLinecap="round" strokeLinejoin="round"
+          stroke={light ? 'rgba(0,0,0,.78)' : '#fff'} />
+  </svg>
+);
+
+// TweakColor — curated color/palette picker. Each option is either a single
+// hex string or an array of 1-5 hex strings; the card adapts — a lone color
+// renders solid, a palette renders colors[0] as the hero (left ~2/3) with the
+// rest stacked in a sharp column on the right. onChange emits the
+// option in the shape it was passed (string stays string, array stays array).
+// Without options it falls back to the native color input for back-compat.
+function TweakColor({ label, value, options, onChange }) {
+  if (!options || !options.length) {
+    return (
+      <div className="twk-row twk-row-h">
+        <div className="twk-lbl"><span>{label}</span></div>
+        <input type="color" className="twk-swatch" value={value}
+               onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  // Native <input type=color> emits lowercase hex per the HTML spec, so
+  // compare case-insensitively. String() guards JSON.stringify(undefined),
+  // which returns the primitive undefined (no .toLowerCase).
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <TweakRow label={label}>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const colors = Array.isArray(o) ? o : [o];
+          const [hero, ...rest] = colors;
+          const sup = rest.slice(0, 4);
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip" role="radio"
+                    aria-checked={on} data-on={on ? '1' : '0'}
+                    aria-label={colors.join(', ')} title={colors.join(' · ')}
+                    style={{ background: hero }}
+                    onClick={() => onChange(o)}>
+              {sup.length > 0 && (
+                <span>
+                  {sup.map((c, j) => <i key={j} style={{ background: c }} />)}
+                </span>
+              )}
+              {on && <__TwkCheck light={__twkIsLight(hero)} />}
+            </button>
+          );
+        })}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakButton({ label, onClick, secondary = false }) {
+  return (
+    <button type="button" className={secondary ? 'twk-btn secondary' : 'twk-btn'}
+            onClick={onClick}>{label}</button>
+  );
+}
+
+Object.assign(window, {
+  useTweaks, TweaksPanel, TweakSection, TweakRow,
+  TweakSlider, TweakToggle, TweakRadio, TweakSelect,
+  TweakText, TweakNumber, TweakColor, TweakButton,
+});
+
+  </script>
+
+  <!-- ui -->
+  <script type="text/babel" data-presets="react">
+// ui.jsx — icons, primitives, shared components
+// All inline SVG icons (24x24 viewbox, stroke-based, currentColor)
+
+const { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext } = React;
+
+// ─────────────────────────────────────────────────────────────────
+// Icons
+// ─────────────────────────────────────────────────────────────────
+const _stroke = {
+  fill: "none", stroke: "currentColor",
+  strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round",
+};
+const Icon = ({ size = 16, children, style, ...rest }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} style={{ display: "block", flexShrink: 0, ...style }} {...rest}>
+    <g {..._stroke}>{children}</g>
+  </svg>
+);
+
+const I = {
+  Logo: (p) => (
+    <svg viewBox="0 0 24 24" width={p.size || 20} height={p.size || 20} style={{ display: "block", ...p.style }}>
+      <rect x="2" y="2" width="20" height="20" rx="6" fill="#2ECC71" />
+      <path d="M7 8.5v7M7 12h4.5M11.5 8.5L15.5 12l-4 3.5" fill="none" stroke="#052e16" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Dashboard: (p) => <Icon {...p}><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></Icon>,
+  Calendar: (p) => <Icon {...p}><rect x="3" y="4.5" width="18" height="16" rx="2.5" /><path d="M3 9h18M8 2.5v4M16 2.5v4" /></Icon>,
+  Sync: (p) => <Icon {...p}><path d="M4 12a8 8 0 0 1 13.66-5.66L20 8.5M20 4v4.5h-4.5" /><path d="M20 12a8 8 0 0 1-13.66 5.66L4 15.5M4 20v-4.5h4.5" /></Icon>,
+  Team: (p) => <Icon {...p}><circle cx="9" cy="9" r="3.5" /><path d="M3 19c0-3 2.5-5 6-5s6 2 6 5" /><circle cx="17" cy="8" r="2.5" /><path d="M16 14c2.5.3 5 1.8 5 5" /></Icon>,
+  Settings: (p) => <Icon {...p}><circle cx="12" cy="12" r="2.8" /><path d="M19.4 14.6a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></Icon>,
+  Billing: (p) => <Icon {...p}><rect x="2.5" y="6" width="19" height="13" rx="2.5" /><path d="M2.5 10.5h19M6 15.5h4" /></Icon>,
+  Plus: (p) => <Icon {...p}><path d="M12 5v14M5 12h14" /></Icon>,
+  Check: (p) => <Icon {...p}><path d="M4.5 12.5l5 5 10-11" /></Icon>,
+  X: (p) => <Icon {...p}><path d="M6 6l12 12M18 6L6 18" /></Icon>,
+  Chevron: (p) => <Icon {...p}><path d="M9 6l6 6-6 6" /></Icon>,
+  ChevronDown: (p) => <Icon {...p}><path d="M6 9l6 6 6-6" /></Icon>,
+  Search: (p) => <Icon {...p}><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></Icon>,
+  Bell: (p) => <Icon {...p}><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2.5h-15z" /><path d="M10 21h4" /></Icon>,
+  Arrow: (p) => <Icon {...p}><path d="M5 12h14M13 6l6 6-6 6" /></Icon>,
+  ArrowLeft: (p) => <Icon {...p}><path d="M19 12H5M11 6l-6 6 6 6" /></Icon>,
+  ArrowRight: (p) => <Icon {...p}><path d="M5 12h14M13 6l6 6-6 6" /></Icon>,
+  ArrowsLR: (p) => <Icon {...p}><path d="M7 7l-4 5 4 5M3 12h18M17 7l4 5-4 5" /></Icon>,
+  Eye: (p) => <Icon {...p}><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></Icon>,
+  EyeOff: (p) => <Icon {...p}><path d="M3 3l18 18M10.5 6.2A10 10 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-3.2 3.9M6.5 8.5A14 14 0 0 0 2 12s3.5 7 10 7c1.7 0 3.2-.4 4.5-1M9.9 9.9a3 3 0 0 0 4.2 4.2" /></Icon>,
+  Trash: (p) => <Icon {...p}><path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13M10 11v6M14 11v6" /></Icon>,
+  Edit: (p) => <Icon {...p}><path d="M14 4l6 6-11 11H3v-6L14 4z" /></Icon>,
+  Copy: (p) => <Icon {...p}><rect x="8" y="8" width="13" height="13" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" /></Icon>,
+  Lock: (p) => <Icon {...p}><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></Icon>,
+  Mail: (p) => <Icon {...p}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></Icon>,
+  Clock: (p) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2.5" /></Icon>,
+  Activity: (p) => <Icon {...p}><path d="M3 12h4l3-8 4 16 3-8h4" /></Icon>,
+  Filter: (p) => <Icon {...p}><path d="M3 5h18l-7 9v6l-4-2v-4L3 5z" /></Icon>,
+  Sparkles: (p) => <Icon {...p}><path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8zM19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9z" /></Icon>,
+  Zap: (p) => <Icon {...p}><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" /></Icon>,
+  Building: (p) => <Icon {...p}><rect x="4" y="3" width="16" height="18" rx="1.5" /><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-4h4v4" /></Icon>,
+  Globe: (p) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></Icon>,
+  Shield: (p) => <Icon {...p}><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9.5-4.5-1-8-4.5-8-9.5V6l8-3z" /></Icon>,
+  Tag: (p) => <Icon {...p}><path d="M3 12V4h8l10 10-8 8L3 12z" /><circle cx="8" cy="8" r="1.4" fill="currentColor" /></Icon>,
+  More: (p) => <Icon {...p}><circle cx="5" cy="12" r="1.2" fill="currentColor" /><circle cx="12" cy="12" r="1.2" fill="currentColor" /><circle cx="19" cy="12" r="1.2" fill="currentColor" /></Icon>,
+  Drag: (p) => <Icon {...p}><circle cx="9" cy="6" r="1" fill="currentColor" /><circle cx="9" cy="12" r="1" fill="currentColor" /><circle cx="9" cy="18" r="1" fill="currentColor" /><circle cx="15" cy="6" r="1" fill="currentColor" /><circle cx="15" cy="12" r="1" fill="currentColor" /><circle cx="15" cy="18" r="1" fill="currentColor" /></Icon>,
+  Pause: (p) => <Icon {...p}><rect x="7" y="5" width="3" height="14" rx="1" /><rect x="14" y="5" width="3" height="14" rx="1" /></Icon>,
+  Play: (p) => <Icon {...p}><path d="M7 5l12 7-12 7V5z" /></Icon>,
+  Link: (p) => <Icon {...p}><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></Icon>,
+  Unlink: (p) => <Icon {...p}><path d="M9.5 14.5L5 19M14.5 9.5L19 5M10 14a4 4 0 0 0 5.7 0l1-1M14 10a4 4 0 0 0-5.7 0l-1 1M3 12h2M12 3v2M19 12h2M12 19v2" /></Icon>,
+  Refresh: (p) => <Icon {...p}><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5" /></Icon>,
+  Info: (p) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 7.5v.5" /></Icon>,
+  Warning: (p) => <Icon {...p}><path d="M12 3L2 20h20L12 3zM12 10v5M12 17v.5" /></Icon>,
+  ExtLink: (p) => <Icon {...p}><path d="M14 4h6v6M20 4l-8 8M10 5H5v14h14v-5" /></Icon>,
+  Switch: (p) => <Icon {...p}><rect x="2" y="6" width="20" height="12" rx="6" /><circle cx="16" cy="12" r="3.5" fill="currentColor" /></Icon>,
+  User: (p) => <Icon {...p}><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-7 8-7s8 3 8 7" /></Icon>,
+};
+
+// Provider mark SVGs
+const Provider = {
+  Google: ({ size = 16 }) => (
+    <svg viewBox="0 0 24 24" width={size} height={size} style={{ display: "block", flexShrink: 0 }}>
+      <path fill="#4285F4" d="M22 12.2c0-.8-.1-1.6-.2-2.3H12v4.5h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4c2-1.8 3.1-4.5 3.1-7.9z" />
+      <path fill="#34A853" d="M12 22c2.8 0 5.2-.9 6.9-2.5l-3.4-2.6c-.9.6-2.1 1-3.5 1-2.7 0-5-1.8-5.8-4.3H2.7v2.7A10 10 0 0 0 12 22z" />
+      <path fill="#FBBC04" d="M6.2 13.6a6 6 0 0 1 0-3.8V7.1H2.7a10 10 0 0 0 0 9.8l3.5-2.7z" />
+      <path fill="#EA4335" d="M12 5.9c1.5 0 2.9.5 4 1.5l3-3A10 10 0 0 0 12 2 10 10 0 0 0 2.7 7.1l3.5 2.7c.8-2.5 3.1-4 5.8-4z" />
+    </svg>
+  ),
+  Microsoft: ({ size = 16 }) => (
+    <svg viewBox="0 0 24 24" width={size} height={size} style={{ display: "block", flexShrink: 0 }}>
+      <rect x="2" y="2" width="9.5" height="9.5" fill="#F25022" />
+      <rect x="12.5" y="2" width="9.5" height="9.5" fill="#7FBA00" />
+      <rect x="2" y="12.5" width="9.5" height="9.5" fill="#00A4EF" />
+      <rect x="12.5" y="12.5" width="9.5" height="9.5" fill="#FFB900" />
+    </svg>
+  ),
+};
+
+// ─────────────────────────────────────────────────────────────────
+// Avatar
+// ─────────────────────────────────────────────────────────────────
+function Avatar({ name = "?", color, size = 28, src }) {
+  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const bg = color || pickColor(name);
+  if (src) {
+    return <img src={src} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
+  }
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%",
+      background: bg, color: "#fff",
+      fontSize: size * 0.42, fontWeight: 600,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      flexShrink: 0, letterSpacing: "-0.02em",
+    }}>{initials}</div>
+  );
+}
+
+function pickColor(seed) {
+  const palette = ["#16a34a", "#4f78e8", "#7c5cd9", "#2eaa9e", "#a45a8b", "#5b6770", "#cc7a17", "#dc6c9b"];
+  let h = 0; for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  return palette[Math.abs(h) % palette.length];
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Modal
+// ─────────────────────────────────────────────────────────────────
+function Modal({ open, onClose, title, children, footer, width = 560 }) {
+  useEffect(() => {
+    if (!open) return;
+    const h = (e) => { if (e.key === "Escape") onClose?.(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 200,
+      background: "rgba(0,0,0,0.55)",
+      backdropFilter: "blur(6px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      animation: "fade-in 0.18s ease",
+    }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        style={{
+          width, maxWidth: "calc(100vw - 32px)", maxHeight: "calc(100vh - 64px)",
+          background: "var(--panel)", border: "0.5px solid var(--border-hi)",
+          borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-pop)",
+          display: "flex", flexDirection: "column", overflow: "hidden",
+        }}>
+        {title && (
+          <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "0.5px solid var(--divider)" }}>
+            <div style={{ fontSize: 14.5, fontWeight: 600 }}>{title}</div>
+            <button className="iconbtn" onClick={onClose}><I.X size={14} /></button>
+          </div>
+        )}
+        <div style={{ padding: "16px 20px", overflowY: "auto", flex: 1 }}>{children}</div>
+        {footer && (
+          <div style={{ padding: "12px 20px", borderTop: "0.5px solid var(--divider)", display: "flex", justifyContent: "flex-end", gap: 8 }}>{footer}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Segmented control
+// ─────────────────────────────────────────────────────────────────
+function Segmented({ value, onChange, options, size = "md" }) {
+  const h = size === "sm" ? 26 : 32;
+  return (
+    <div style={{
+      display: "inline-flex", padding: 2, gap: 2,
+      background: "var(--surface)", border: "0.5px solid var(--border)",
+      borderRadius: 8, height: h,
+    }}>
+      {options.map((opt) => {
+        const v = typeof opt === "string" ? opt : opt.value;
+        const label = typeof opt === "string" ? opt : opt.label;
+        const icon = typeof opt === "object" ? opt.icon : null;
+        const active = v === value;
+        return (
+          <button key={v} onClick={() => onChange(v)}
+            style={{
+              height: h - 4, padding: "0 10px", borderRadius: 6,
+              fontSize: size === "sm" ? 11.5 : 12.5, fontWeight: 500,
+              display: "inline-flex", alignItems: "center", gap: 5,
+              background: active ? "var(--bg)" : "transparent",
+              color: active ? "var(--text)" : "var(--dim)",
+              border: active ? "0.5px solid var(--border-hi)" : "0.5px solid transparent",
+              transition: "all 0.12s",
+            }}>{icon}{label}</button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Tabs
+// ─────────────────────────────────────────────────────────────────
+function Tabs({ value, onChange, options }) {
+  return (
+    <div style={{ display: "flex", gap: 4, borderBottom: "0.5px solid var(--divider)", marginBottom: 16 }}>
+      {options.map((opt) => {
+        const v = typeof opt === "string" ? opt : opt.value;
+        const label = typeof opt === "string" ? opt : opt.label;
+        const active = v === value;
+        return (
+          <button key={v} onClick={() => onChange(v)}
+            style={{
+              padding: "8px 12px", marginBottom: -0.5,
+              fontSize: 13, fontWeight: 500,
+              color: active ? "var(--text)" : "var(--dim)",
+              borderBottom: active ? "1.5px solid var(--accent)" : "1.5px solid transparent",
+              transition: "color 0.12s, border-color 0.12s",
+            }}>{label}</button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Empty state
+// ─────────────────────────────────────────────────────────────────
+function Empty({ icon, title, body, action }) {
+  return (
+    <div style={{
+      padding: "48px 24px", textAlign: "center",
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
+    }}>
+      {icon && <div style={{ color: "var(--muted)", marginBottom: 4 }}>{icon}</div>}
+      <div style={{ fontSize: 15, fontWeight: 500 }}>{title}</div>
+      {body && <div className="dim" style={{ fontSize: 13, maxWidth: 380, lineHeight: 1.5 }}>{body}</div>}
+      {action && <div style={{ marginTop: 8 }}>{action}</div>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Toast (lightweight)
+// ─────────────────────────────────────────────────────────────────
+const ToastCtx = createContext(null);
+function ToastProvider({ children }) {
+  const [toasts, setToasts] = useState([]);
+  const push = useCallback((msg, kind = "info") => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts((t) => [...t, { id, msg, kind }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3200);
+  }, []);
+  return (
+    <ToastCtx.Provider value={push}>
+      {children}
+      <div style={{
+        position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)",
+        display: "flex", flexDirection: "column", gap: 8, zIndex: 300,
+        pointerEvents: "none",
+      }}>
+        {toasts.map((t) => (
+          <div key={t.id} style={{
+            background: "var(--surface-hi)", border: "0.5px solid var(--border-hi)",
+            color: "var(--text)", fontSize: 13, padding: "10px 14px",
+            borderRadius: 10, boxShadow: "var(--shadow-pop)",
+            display: "flex", alignItems: "center", gap: 8,
+            animation: "fade-in 0.2s ease", pointerEvents: "auto",
+            minWidth: 220,
+          }}>
+            {t.kind === "ok" && <span style={{ color: "var(--ok)" }}><I.Check size={14} /></span>}
+            {t.kind === "info" && <span style={{ color: "var(--accent)" }}><I.Sparkles size={14} /></span>}
+            {t.kind === "warn" && <span style={{ color: "var(--warn)" }}><I.Warning size={14} /></span>}
+            <span>{t.msg}</span>
+          </div>
+        ))}
+      </div>
+    </ToastCtx.Provider>
+  );
+}
+const useToast = () => useContext(ToastCtx);
+
+// ─────────────────────────────────────────────────────────────────
+// Color swatch picker
+// ─────────────────────────────────────────────────────────────────
+const CAL_COLORS = [
+  { id: "tomato",  hex: "#e25c5c", name: "Tomato" },
+  { id: "tangerine", hex: "#f08a3c", name: "Tangerine" },
+  { id: "sand",    hex: "#d9a86c", name: "Sand" },
+  { id: "banana",  hex: "#ecc94b", name: "Banana" },
+  { id: "sage",    hex: "#7eb069", name: "Sage" },
+  { id: "basil",   hex: "#2f9e6a", name: "Basil" },
+  { id: "lagoon",  hex: "#3da5b0", name: "Lagoon" },
+  { id: "sky",     hex: "#5ba6f0", name: "Sky" },
+  { id: "blueberry", hex: "#4f78e8", name: "Blueberry" },
+  { id: "lavender", hex: "#9783e3", name: "Lavender" },
+  { id: "grape",   hex: "#a45fc6", name: "Grape" },
+  { id: "flamingo", hex: "#dc6c9b", name: "Flamingo" },
+  { id: "graphite", hex: "#6c727a", name: "Graphite" },
+];
+function colorByHex(hex) { return CAL_COLORS.find(c => c.hex === hex) || CAL_COLORS[0]; }
+
+function ColorSwatch({ value, onChange, size = 16 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{
+          width: size, height: size, borderRadius: 4,
+          background: value, border: "0.5px solid rgba(255,255,255,0.18)",
+          boxShadow: "0 0 0 0.5px rgba(0,0,0,0.3) inset",
+        }} />
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 30,
+          background: "var(--panel)", border: "0.5px solid var(--border-hi)",
+          borderRadius: 10, padding: 10, boxShadow: "var(--shadow-pop)",
+          display: "grid", gridTemplateColumns: "repeat(7, 18px)", gap: 8,
+        }}>
+          {CAL_COLORS.map(c => (
+            <button key={c.id} title={c.name}
+              onClick={() => { onChange(c.hex); setOpen(false); }}
+              style={{
+                width: 18, height: 18, borderRadius: 5, background: c.hex,
+                border: c.hex === value ? "2px solid var(--text)" : "0.5px solid rgba(255,255,255,0.1)",
+                boxShadow: "0 0 0 0.5px rgba(0,0,0,0.3) inset",
+              }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Page header
+// ─────────────────────────────────────────────────────────────────
+function PageHeader({ title, subtitle, actions }) {
+  return (
+    <div style={{
+      padding: "28px 32px 20px", display: "flex", alignItems: "flex-start", gap: 24,
+      borderBottom: "0.5px solid var(--divider)",
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.2 }}>{title}</h1>
+        {subtitle && <div style={{ marginTop: 4, color: "var(--dim)", fontSize: 13 }}>{subtitle}</div>}
+      </div>
+      {actions && <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>{actions}</div>}
+    </div>
+  );
+}
+
+// Expose to other Babel scripts
+Object.assign(window, {
+  I, Provider, Icon,
+  Avatar, Modal, Segmented, Tabs, Empty,
+  ToastProvider, useToast,
+  ColorSwatch, CAL_COLORS, colorByHex,
+  PageHeader,
+});
+
+  </script>
+
+  <!-- data -->
+  <script type="text/babel" data-presets="react">
+// data.jsx — mock data, store, and helpers
+// ───────────────────────────────────────────────────────────────────
+
+// Connected calendar accounts (Google / Microsoft) and their sub-calendars.
+const INITIAL_ACCOUNTS = [
+  {
+    id: "acc-1",
+    provider: "google",
+    email: "alex@levitatedata.com",
+    label: "Work",
+    connectedAt: "2025-09-12",
+    status: "active",
+    calendars: [
+      { id: "cal-1", name: "alex@levitatedata.com", color: "#4f78e8", primary: true, visible: true, role: "owner" },
+      { id: "cal-2", name: "Team standups", color: "#2f9e6a", primary: false, visible: true, role: "writer" },
+      { id: "cal-3", name: "Customer calls", color: "#dc6c9b", primary: false, visible: true, role: "writer" },
+      { id: "cal-4", name: "Holidays — US", color: "#7eb069", primary: false, visible: false, role: "reader" },
+    ],
+  },
+  {
+    id: "acc-2",
+    provider: "google",
+    email: "alex.coleman@gmail.com",
+    label: "Personal",
+    connectedAt: "2025-09-12",
+    status: "active",
+    calendars: [
+      { id: "cal-5", name: "alex.coleman@gmail.com", color: "#a45fc6", primary: true, visible: true, role: "owner" },
+      { id: "cal-6", name: "Family", color: "#f08a3c", primary: false, visible: true, role: "owner" },
+      { id: "cal-7", name: "Gym & training", color: "#3da5b0", primary: false, visible: true, role: "owner" },
+    ],
+  },
+  {
+    id: "acc-3",
+    provider: "microsoft",
+    email: "alex@acme.consulting",
+    label: "Consulting",
+    connectedAt: "2025-10-04",
+    status: "active",
+    calendars: [
+      { id: "cal-8", name: "alex@acme.consulting", color: "#e25c5c", primary: true, visible: true, role: "owner" },
+      { id: "cal-9", name: "Client — Northwind", color: "#9783e3", primary: false, visible: true, role: "writer" },
+    ],
+  },
+];
+
+// Sync flow definitions
+const INITIAL_FLOWS = [
+  {
+    id: "flow-1",
+    name: "Hide work meetings on personal",
+    sources: ["cal-1", "cal-2", "cal-3"],
+    destinations: ["cal-5"],
+    direction: "one-way",
+    privacy: "busy",
+    template: "Busy",
+    stripAttendees: true,
+    workingHoursOnly: false,
+    hideWeekends: false,
+    declined: "skip",
+    paused: false,
+    lastRun: "2 min ago",
+    eventsSynced: 142,
+  },
+  {
+    id: "flow-2",
+    name: "Mirror personal blocks to work",
+    sources: ["cal-6", "cal-7"],
+    destinations: ["cal-1"],
+    direction: "one-way",
+    privacy: "template",
+    template: "Personal — Busy",
+    stripAttendees: true,
+    workingHoursOnly: true,
+    hideWeekends: false,
+    declined: "skip",
+    paused: false,
+    lastRun: "8 min ago",
+    eventsSynced: 38,
+  },
+  {
+    id: "flow-3",
+    name: "Two-way sync: Work ⇄ Consulting",
+    sources: ["cal-1"],
+    destinations: ["cal-8"],
+    direction: "two-way",
+    privacy: "title",
+    template: "",
+    stripAttendees: false,
+    workingHoursOnly: false,
+    hideWeekends: true,
+    declined: "skip",
+    paused: false,
+    lastRun: "just now",
+    eventsSynced: 412,
+  },
+  {
+    id: "flow-4",
+    name: "Customer calls → exec visibility",
+    sources: ["cal-3"],
+    destinations: ["cal-9"],
+    direction: "one-way",
+    privacy: "full",
+    template: "",
+    stripAttendees: false,
+    workingHoursOnly: false,
+    hideWeekends: false,
+    declined: "include",
+    paused: true,
+    lastRun: "3h ago",
+    eventsSynced: 56,
+  },
+];
+
+const INITIAL_TEAM = [
+  { id: "u-1", name: "Alex Coleman", email: "alex@einkal.com", role: "owner", avatarColor: "#2ECC71", you: true },
+  { id: "u-2", name: "Priya Raman", email: "priya@einkal.com", role: "admin" },
+  { id: "u-3", name: "Marco Velez", email: "marco@einkal.com", role: "member" },
+  { id: "u-4", name: "Sara Lindqvist", email: "sara@einkal.com", role: "member" },
+  { id: "u-5", name: "Jun Park", email: "jun@einkal.com", role: "billing" },
+];
+
+const ACTIVITY = [
+  { id: 1, t: "just now", text: "Synced 'Two-way sync: Work ⇄ Consulting'", events: 3, kind: "sync" },
+  { id: 2, t: "2 min ago", text: "Hidden 1 event on Personal — 'Q4 board review' became 'Busy'", kind: "privacy" },
+  { id: 3, t: "8 min ago", text: "Mirrored 'Yoga' from Personal → Work as 'Personal — Busy'", kind: "sync" },
+  { id: 4, t: "26 min ago", text: "Created new flow 'Mirror personal blocks to work'", kind: "flow" },
+  { id: 5, t: "1h ago", text: "Resolved conflict on Sept 14: kept Customer Call over Coffee chat", kind: "conflict" },
+  { id: 6, t: "3h ago", text: "Paused 'Customer calls → exec visibility'", kind: "pause" },
+  { id: 7, t: "Yesterday", text: "Priya joined the team as Admin", kind: "team" },
+  { id: 8, t: "Yesterday", text: "Connected alex@acme.consulting (Microsoft)", kind: "connect" },
+];
+
+const PRIVACY_PRESETS = [
+  { id: "busy", title: "Busy only", body: "Just blocks time. No title, no details. Maximum privacy.", icon: "lock" },
+  { id: "title", title: "Title only", body: "Show event title. Hide description, location, attendees.", icon: "tag" },
+  { id: "titletime", title: "Title + time", body: "Title + start/end. Strip everything else.", icon: "clock" },
+  { id: "full", title: "Full details", body: "Mirror everything: title, description, attendees, location.", icon: "eye" },
+  { id: "template", title: "Custom title template", body: "Replace title with a template you write. e.g. 'Busy — Work'.", icon: "edit" },
+];
+
+// ───────────────────────────────────────────────────────────────────
+// Store — lightweight reactive store. useStore() reads, useDispatch() writes.
+// ───────────────────────────────────────────────────────────────────
+const StoreCtx = React.createContext(null);
+
+function StoreProvider({ children }) {
+  const [state, setState] = React.useState({
+    accounts: INITIAL_ACCOUNTS,
+    flows: INITIAL_FLOWS,
+    team: INITIAL_TEAM,
+    activity: ACTIVITY,
+    org: {
+      name: "Acme, Inc.",
+      slug: "acme",
+      plan: "Team",
+      seats: 5,
+      seatsUsed: 5,
+      timezone: "America/Los_Angeles",
+    },
+    user: { id: "u-1", name: "Alex Coleman", email: "alex@einkal.com" },
+  });
+
+  const actions = React.useMemo(() => ({
+    updateCalendar: (calId, patch) => setState(s => ({
+      ...s,
+      accounts: s.accounts.map(a => ({
+        ...a,
+        calendars: a.calendars.map(c => c.id === calId ? { ...c, ...patch } : c),
+      })),
+    })),
+    removeAccount: (accId) => setState(s => ({
+      ...s,
+      accounts: s.accounts.filter(a => a.id !== accId),
+    })),
+    addAccount: (acc) => setState(s => ({ ...s, accounts: [...s.accounts, acc] })),
+    addFlow: (flow) => setState(s => ({ ...s, flows: [{ ...flow, id: "flow-" + Math.random().toString(36).slice(2, 7) }, ...s.flows] })),
+    updateFlow: (id, patch) => setState(s => ({
+      ...s, flows: s.flows.map(f => f.id === id ? { ...f, ...patch } : f),
+    })),
+    removeFlow: (id) => setState(s => ({ ...s, flows: s.flows.filter(f => f.id !== id) })),
+    addTeammate: (u) => setState(s => ({ ...s, team: [...s.team, { ...u, id: "u-" + Math.random().toString(36).slice(2, 6) }] })),
+    removeTeammate: (id) => setState(s => ({ ...s, team: s.team.filter(u => u.id !== id) })),
+    updateTeammate: (id, patch) => setState(s => ({ ...s, team: s.team.map(u => u.id === id ? { ...u, ...patch } : u) })),
+    pushActivity: (text, kind = "sync") => setState(s => ({
+      ...s,
+      activity: [{ id: Date.now(), t: "just now", text, kind }, ...s.activity].slice(0, 30),
+    })),
+    updateOrg: (patch) => setState(s => ({ ...s, org: { ...s.org, ...patch } })),
+  }), []);
+
+  return <StoreCtx.Provider value={{ state, ...actions }}>{children}</StoreCtx.Provider>;
+}
+
+const useStore = () => React.useContext(StoreCtx);
+
+// helper: find calendar by id across accounts
+function findCalendar(accounts, calId) {
+  for (const a of accounts) {
+    const c = a.calendars.find(c => c.id === calId);
+    if (c) return { ...c, account: a };
+  }
+  return null;
+}
+
+Object.assign(window, {
+  INITIAL_ACCOUNTS, INITIAL_FLOWS, INITIAL_TEAM, ACTIVITY, PRIVACY_PRESETS,
+  StoreProvider, useStore, findCalendar,
+});
+
+  </script>
+
+  <!-- nav -->
+  <script type="text/babel" data-presets="react">
+// nav.jsx — Sidebar, Topbar, OrgSwitcher
+
+const { useState: useStateN, useEffect: useEffectN, useRef: useRefN } = React;
+
+function Sidebar({ route, onNav }) {
+  const { state } = useStore();
+  const items = [
+    { id: "dashboard", label: "Dashboard", icon: <I.Dashboard size={16} /> },
+    { id: "calendars", label: "Calendars", icon: <I.Calendar size={16} /> },
+    { id: "sync", label: "Sync flows", icon: <I.Sync size={16} />, badge: state.flows.filter(f => !f.paused).length },
+    { id: "team", label: "Team", icon: <I.Team size={16} /> },
+    { id: "settings", label: "Settings", icon: <I.Settings size={16} /> },
+    { id: "billing", label: "Billing", icon: <I.Billing size={16} /> },
+  ];
+
+  return (
+    <aside style={{
+      display: "flex", flexDirection: "column",
+      background: "var(--bg-1)",
+      borderRight: "0.5px solid var(--divider)",
+      padding: "12px 10px",
+      gap: 4,
+      height: "100%",
+      overflow: "hidden",
+    }}>
+      {/* Brand mark */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "10px 8px 20px", margin: "0 2px",
+      }}>
+        <div style={{
+          width: 22, height: 22, borderRadius: 6,
+          background: "var(--text)", color: "var(--bg)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 11.5, fontWeight: 700, letterSpacing: "-0.03em",
+        }}>K</div>
+        <div style={{ fontSize: 13.5, fontWeight: 600, letterSpacing: "-0.01em" }}>EinKal</div>
+      </div>
+
+      {/* Quick action */}
+      <nav style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        {items.map((it) => (
+          <button key={it.id} onClick={() => onNav(it.id)}
+            style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "7px 10px", borderRadius: 7,
+              fontSize: 13, fontWeight: 450,
+              color: route === it.id ? "var(--text)" : "var(--text-2)",
+              background: route === it.id ? "var(--hover)" : "transparent",
+              transition: "background 0.1s, color 0.1s",
+            }}
+            onMouseEnter={(e) => { if (route !== it.id) e.currentTarget.style.background = "color-mix(in oklab, var(--hover) 50%, transparent)"; }}
+            onMouseLeave={(e) => { if (route !== it.id) e.currentTarget.style.background = "transparent"; }}>
+            <span style={{ color: route === it.id ? "var(--accent)" : "var(--dim)" }}>{it.icon}</span>
+            <span style={{ flex: 1, textAlign: "left" }}>{it.label}</span>
+            {it.badge != null && (
+              <span style={{
+                fontSize: 10.5, fontWeight: 500, fontFamily: "var(--font-mono)",
+                background: "var(--surface-hi)", color: "var(--text-2)",
+                padding: "1px 6px", borderRadius: 999,
+              }}>{it.badge}</span>
+            )}
+          </button>
+        ))}
+      </nav>
+
+      <div style={{ flex: 1 }} />
+
+      {/* Status card */}
+      <div style={{
+        margin: "0 4px 4px", padding: "10px 12px",
+        background: "var(--surface)", border: "0.5px solid var(--border)",
+        borderRadius: 9,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
+          <span className="pulse" />
+          <span style={{ fontSize: 11.5, fontWeight: 500 }}>All syncs running</span>
+        </div>
+        <div className="dim" style={{ fontSize: 11, lineHeight: 1.45 }}>
+          {state.flows.filter(f => !f.paused).length} active flows · last check 12s ago
+        </div>
+      </div>
+
+      <UserChip />
+    </aside>
+  );
+}
+
+function OrgSwitcher() {
+  const [open, setOpen] = useStateN(false);
+  const ref = useRefN(null);
+  const { state } = useStore();
+
+  useEffectN(() => {
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: "relative", margin: "0 4px 4px" }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 9,
+          padding: "8px 9px", borderRadius: 8,
+          background: open ? "var(--hover)" : "transparent",
+          transition: "background 0.12s",
+        }}
+        onMouseEnter={(e) => { if (!open) e.currentTarget.style.background = "color-mix(in oklab, var(--hover) 50%, transparent)"; }}
+        onMouseLeave={(e) => { if (!open) e.currentTarget.style.background = "transparent"; }}>
+        <div style={{
+          width: 24, height: 24, borderRadius: 6,
+          background: "var(--accent)",
+          color: "var(--ink-on-accent)", display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 12, fontWeight: 700, letterSpacing: "-0.02em",
+        }}>{state.org.name[0]}</div>
+        <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+          <div style={{ fontSize: 12.5, fontWeight: 500, lineHeight: 1.2 }}>{state.org.name}</div>
+          <div className="dim" style={{ fontSize: 10.5, lineHeight: 1.2 }}>{state.org.plan} · {state.org.seatsUsed}/{state.org.seats}</div>
+        </div>
+        <I.ChevronDown size={13} style={{ color: "var(--dim)" }} />
+      </button>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
+          background: "var(--panel)", border: "0.5px solid var(--border-hi)",
+          borderRadius: 9, boxShadow: "var(--shadow-pop)",
+          padding: 5, zIndex: 50,
+        }}>
+          <OrgRow name={state.org.name} sub={`${state.org.seatsUsed} members`} active />
+          <OrgRow name="Side Hustle Co." sub="Pro · 1 member" />
+          <div className="hr" style={{ margin: "5px 0" }} />
+          <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 8px", width: "100%", borderRadius: 6, fontSize: 12.5, color: "var(--text-2)" }}
+            onMouseEnter={(e) => e.currentTarget.style.background = "var(--hover)"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+            <I.Plus size={13} /> Create new workspace
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrgRow({ name, sub, active }) {
+  return (
+    <button style={{
+      display: "flex", alignItems: "center", gap: 9, width: "100%",
+      padding: "7px 8px", borderRadius: 6, fontSize: 12.5,
+    }}
+      onMouseEnter={(e) => e.currentTarget.style.background = "var(--hover)"}
+      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+      <div style={{
+        width: 22, height: 22, borderRadius: 5,
+        background: active ? "var(--text)" : "var(--surface-hi)",
+        color: active ? "var(--bg)" : "var(--text-2)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 11, fontWeight: 600,
+      }}>{name[0]}</div>
+      <div style={{ flex: 1, textAlign: "left" }}>
+        <div style={{ fontWeight: 500 }}>{name}</div>
+        <div className="dim" style={{ fontSize: 10.5 }}>{sub}</div>
+      </div>
+      {active && <I.Check size={13} style={{ color: "var(--accent)" }} />}
+    </button>
+  );
+}
+
+function UserChip() {
+  const { state } = useStore();
+  const [open, setOpen] = useStateN(false);
+  const [orgsOpen, setOrgsOpen] = useStateN(false);
+  const ref = useRefN(null);
+  useEffectN(() => {
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setOrgsOpen(false); } };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+  return (
+    <div ref={ref} style={{ position: "relative", margin: "0 4px" }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: "100%", display: "flex", alignItems: "center", gap: 9,
+        padding: "7px 8px", borderRadius: 8,
+        background: open ? "var(--hover)" : "transparent",
+      }}
+        onMouseEnter={(e) => { if (!open) e.currentTarget.style.background = "color-mix(in oklab, var(--hover) 50%, transparent)"; }}
+        onMouseLeave={(e) => { if (!open) e.currentTarget.style.background = "transparent"; }}>
+        <Avatar name={state.user.name} size={22} />
+        <div style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
+          <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{state.user.name}</div>
+          <div className="dim" style={{ fontSize: 10.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{state.org.name}</div>
+        </div>
+        <I.More size={14} style={{ color: "var(--dim)" }} />
+      </button>
+      {open && (
+        <div style={{
+          position: "absolute", bottom: "calc(100% + 4px)", left: 0, right: 0,
+          background: "var(--panel)", border: "0.5px solid var(--border-hi)",
+          borderRadius: 9, padding: 5, boxShadow: "var(--shadow-pop)", zIndex: 50,
+        }}>
+          {/* Account info */}
+          <div style={{ padding: "8px 9px 6px", display: "flex", alignItems: "center", gap: 9 }}>
+            <Avatar name={state.user.name} size={26} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{state.user.name}</div>
+              <div className="dim" style={{ fontSize: 10.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{state.user.email}</div>
+            </div>
+          </div>
+
+          <div className="hr" style={{ margin: "3px 0" }} />
+
+          {/* Workspace */}
+          <div style={{ padding: "4px 9px 2px", fontSize: 10, fontWeight: 500, color: "var(--muted)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+            Workspace
+          </div>
+          <button onClick={() => setOrgsOpen(v => !v)}
+            style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "7px 8px", borderRadius: 6, fontSize: 12.5 }}
+            onMouseEnter={(e) => e.currentTarget.style.background = "var(--hover)"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+            <div style={{
+              width: 22, height: 22, borderRadius: 5,
+              background: "var(--text)", color: "var(--bg)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 11, fontWeight: 700, letterSpacing: "-0.02em",
+            }}>{state.org.name[0]}</div>
+            <div style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
+              <div style={{ fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{state.org.name}</div>
+              <div className="dim" style={{ fontSize: 10.5 }}>{state.org.plan} · {state.org.seatsUsed}/{state.org.seats}</div>
+            </div>
+            <I.ChevronDown size={12} style={{ color: "var(--dim)", transform: orgsOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+          </button>
+
+          {orgsOpen && (
+            <div style={{ padding: "2px 0 4px", borderTop: "0.5px solid var(--divider)", marginTop: 3 }}>
+              <OrgRow name={state.org.name} sub={`${state.org.seatsUsed} members`} active />
+              <OrgRow name="Side Hustle Co." sub="Pro · 1 member" />
+              <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 8px", width: "100%", borderRadius: 6, fontSize: 12.5, color: "var(--text-2)" }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "var(--hover)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+                <I.Plus size={13} /> Create new workspace
+              </button>
+            </div>
+          )}
+
+          <div className="hr" style={{ margin: "4px 0" }} />
+          {["Account", "Notifications", "Keyboard shortcuts", "What's new"].map(l =>
+            <MenuItem key={l} label={l} />
+          )}
+          <div className="hr" style={{ margin: "4px 0" }} />
+          <MenuItem label="Sign out" danger />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuItem({ label, icon, danger, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: 8, width: "100%",
+      padding: "7px 9px", borderRadius: 5, fontSize: 12.5,
+      color: danger ? "var(--danger)" : "var(--text-2)",
+    }}
+      onMouseEnter={(e) => e.currentTarget.style.background = "var(--hover)"}
+      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+      {icon}{label}
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Top bar (per-screen search + global help)
+// ─────────────────────────────────────────────────────────────────
+function Topbar({ left, right }) {
+  return (
+    <div style={{
+      height: 32, padding: "0 16px",
+      borderBottom: "0.5px solid var(--divider)",
+      display: "flex", alignItems: "center", gap: 8,
+      background: "var(--bg)",
+    }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>{left}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        {right}
+        <button className="iconbtn sm" data-tip="Search (⌘K)"><I.Search size={13} /></button>
+        <button className="iconbtn sm" data-tip="Notifications"><I.Bell size={13} /></button>
+        <div style={{ width: 1, height: 14, background: "var(--divider)", margin: "0 4px" }} />
+        <button className="btn ghost sm" style={{ gap: 5, height: 22, padding: "0 8px", fontSize: 11 }}>
+          <I.Sparkles size={11} /> What's new
+        </button>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { Sidebar, Topbar, MenuItem });
+
+  </script>
+
+  <!-- screens-auth -->
+  <script type="text/babel" data-presets="react">
+// screens-auth.jsx — Auth flow: signin → org create → invite → role pick
+
+const { useState: useStateA, useEffect: useEffectA } = React;
+
+function AuthShell({ children, side }) {
+  return (
+    <div className="mesh" style={{
+      width: "100vw", height: "100vh",
+      display: "grid", gridTemplateColumns: "1fr 1fr",
+      overflow: "hidden",
+    }}>
+      {/* Left — content */}
+      <div style={{
+        display: "flex", flexDirection: "column",
+        padding: "32px 56px",
+        background: "color-mix(in oklab, var(--bg) 92%, transparent)",
+        backdropFilter: "blur(0)",
+        position: "relative",
+        overflow: "auto",
+      }}>
+        {/* logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <I.Logo size={22} />
+          <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-0.01em" }}>EinKal</span>
+        </div>
+
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", maxWidth: 380, width: "100%", margin: "0 auto" }}>
+          {children}
+        </div>
+
+        <div className="dim" style={{ fontSize: 11.5, display: "flex", justifyContent: "space-between" }}>
+          <span>© 2026 EinKal</span>
+          <span style={{ display: "flex", gap: 14 }}>
+            <a>Privacy</a><a>Terms</a><a>Status</a>
+          </span>
+        </div>
+      </div>
+
+      {/* Right — illustration */}
+      <div style={{
+        position: "relative", overflow: "hidden",
+        borderLeft: "0.5px solid var(--divider)",
+      }}>
+        {side || <AuthHero />}
+      </div>
+    </div>
+  );
+}
+
+function AuthHero() {
+  // floating cards illustration
+  return (
+    <div style={{ position: "absolute", inset: 0, padding: 60 }}>
+      <div style={{
+        position: "absolute", top: "8%", right: "8%",
+        fontSize: 54, fontWeight: 700,
+        color: "var(--text)", letterSpacing: "-0.035em", lineHeight: 1.02,
+        maxWidth: 420,
+      }}>
+        No more <br />
+        <span style={{ color: "var(--accent)" }}>double-bookings,</span> <br />
+        ever.
+      </div>
+      <div style={{
+        position: "absolute", top: "30%", right: "8%", maxWidth: 360,
+        color: "var(--text-2)", fontSize: 15, lineHeight: 1.55,
+      }}>
+        One calendar to plan from. The others stay quietly in sync — without leaking who you're actually meeting.
+      </div>
+
+      {/* fake calendar cards */}
+      <FloatingCal x="42%" y="48%" w={260} title="Work" color="#4f78e8" events={[
+        { t: "9:00", l: "Standup" },
+        { t: "11:30", l: "Customer — Northwind" },
+        { t: "2:00", l: "Design review" },
+      ]} />
+      <FloatingCal x="55%" y="62%" w={260} title="Personal" color="#a45fc6" events={[
+        { t: "9:00", l: "Busy" },
+        { t: "11:30", l: "Busy" },
+        { t: "2:00", l: "Busy" },
+      ]} stamp="hidden" />
+      <FloatingCal x="68%" y="76%" w={260} title="Consulting" color="#e25c5c" events={[
+        { t: "9:00", l: "Standup" },
+        { t: "11:30", l: "Busy — Work" },
+        { t: "2:00", l: "Design review" },
+      ]} stamp="mirrored" />
+
+      {/* connector arrows */}
+      <svg style={{ position: "absolute", left: "47%", top: "55%", pointerEvents: "none" }} width="160" height="120">
+        <defs>
+          <linearGradient id="line-g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#2ECC71" stopOpacity="0.0" />
+            <stop offset="1" stopColor="#2ECC71" stopOpacity="0.9" />
+          </linearGradient>
+        </defs>
+        <path d="M5,5 C30,40 60,60 110,90" stroke="url(#line-g)" strokeWidth="1.4" fill="none" strokeDasharray="3 3" />
+      </svg>
+    </div>
+  );
+}
+
+function FloatingCal({ x, y, w, title, color, events, stamp }) {
+  return (
+    <div style={{
+      position: "absolute", left: x, top: y, width: w,
+      background: "var(--panel)", border: "0.5px solid var(--border-hi)",
+      borderRadius: 12, padding: 14, boxShadow: "0 20px 50px -20px rgba(0,0,0,0.7)",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+        <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
+        <div style={{ fontSize: 12, fontWeight: 500 }}>{title}</div>
+        {stamp && (
+          <div style={{
+            marginLeft: "auto", fontSize: 9.5, padding: "2px 6px",
+            color: "var(--accent)", background: "var(--accent-bg)",
+            borderRadius: 999, fontWeight: 500, letterSpacing: "0.03em", textTransform: "uppercase",
+          }}>{stamp}</div>
+        )}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {events.map((e, i) => (
+          <div key={i} style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "5px 8px", borderRadius: 5,
+            background: "color-mix(in oklab, " + color + " 12%, transparent)",
+            borderLeft: `2px solid ${color}`,
+            fontSize: 11,
+          }}>
+            <span className="mono dim" style={{ fontSize: 10 }}>{e.t}</span>
+            <span style={{ color: e.l === "Busy" || e.l.startsWith("Busy") ? "var(--dim)" : "var(--text)" }}>{e.l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Sign-in screen
+// ─────────────────────────────────────────────────────────────────
+function SignIn({ onContinue, onSkip }) {
+  const [email, setEmail] = useStateA("");
+  const [loading, setLoading] = useStateA(null);
+
+  const provider = (kind) => {
+    setLoading(kind);
+    setTimeout(() => { setLoading(null); onContinue({ provider: kind, email: "alex@levitatedata.com" }); }, 900);
+  };
+
+  return (
+    <AuthShell>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--accent)", marginBottom: 14 }}>
+        Sign in
+      </div>
+      <h1 style={{ margin: 0, fontSize: 22, fontWeight: 500, letterSpacing: "-0.015em", lineHeight: 1.15 }}>
+        Welcome back.
+      </h1>
+      <div style={{ marginTop: 8, color: "var(--text-2)", fontSize: 14.5, lineHeight: 1.5 }}>
+        Pick the calendar you live in. The rest will catch up.
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 28 }}>
+        <ProviderBtn onClick={() => provider("google")} loading={loading === "google"}
+          icon={<Provider.Google size={17} />} label="Continue with Google" />
+        <ProviderBtn onClick={() => provider("microsoft")} loading={loading === "microsoft"}
+          icon={<Provider.Microsoft size={17} />} label="Continue with Microsoft" />
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "20px 0" }}>
+        <div className="hr" style={{ flex: 1 }} />
+        <span className="dim" style={{ fontSize: 11 }}>OR</span>
+        <div className="hr" style={{ flex: 1 }} />
+      </div>
+
+      <div>
+        <label className="label">Work email</label>
+        <input className="input" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <button className="btn primary" style={{ width: "100%", marginTop: 10 }}
+          onClick={() => onContinue({ provider: "email", email })} disabled={!email}>
+          Send magic link <I.ArrowRight size={14} />
+        </button>
+      </div>
+
+      <div style={{ marginTop: 24, fontSize: 12.5, color: "var(--dim)", textAlign: "center" }}>
+        New to EinKal? <a style={{ color: "var(--accent)", cursor: "default" }} onClick={() => onContinue({ provider: "google", email: "alex@levitatedata.com", isNew: true })}>Start a workspace</a>
+      </div>
+
+      <button onClick={onSkip} className="btn ghost sm" style={{ marginTop: 18, alignSelf: "center" }}>
+        Skip to demo <I.ArrowRight size={12} />
+      </button>
+    </AuthShell>
+  );
+}
+
+function ProviderBtn({ icon, label, onClick, loading }) {
+  return (
+    <button onClick={onClick} disabled={loading} style={{
+      width: "100%", height: 32, padding: "0 12px",
+      display: "flex", alignItems: "center", gap: 10,
+      background: "var(--panel)", border: "0.5px solid var(--border-hi)",
+      borderRadius: 9, fontSize: 13.5, fontWeight: 500,
+      transition: "background 0.12s, border-color 0.12s",
+    }}
+      onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-hi)"}
+      onMouseLeave={(e) => e.currentTarget.style.background = "var(--panel)"}>
+      {loading ? <Spinner /> : icon}
+      <span>{label}</span>
+      <span style={{ flex: 1 }} />
+      {!loading && <I.ArrowRight size={13} style={{ color: "var(--dim)" }} />}
+    </button>
+  );
+}
+
+function Spinner() {
+  return (
+    <div style={{
+      width: 16, height: 16, borderRadius: "50%",
+      border: "1.5px solid var(--border)",
+      borderTopColor: "var(--accent)",
+      animation: "spin 0.7s linear infinite",
+    }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Onboarding (org create + invite + role pick)
+// ─────────────────────────────────────────────────────────────────
+function Onboarding({ onDone }) {
+  const [step, setStep] = useStateA(0);
+  const [org, setOrg] = useStateA({ name: "", slug: "", role: "lead", size: "5-25" });
+  const [invites, setInvites] = useStateA([
+    { email: "priya@levitatedata.com", role: "admin" },
+    { email: "marco@levitatedata.com", role: "member" },
+    { email: "", role: "member" },
+  ]);
+
+  const steps = ["Workspace", "Your role", "Invite team", "Ready"];
+
+  return (
+    <AuthShell side={<OnboardingHero step={step} steps={steps} />}>
+      <Stepper count={4} current={step} />
+
+      {step === 0 && (
+        <div className="fade-in">
+          <h2 style={{ margin: 0, fontSize: 26, fontWeight: 500, letterSpacing: "-0.015em" }}>What should we call your workspace?</h2>
+          <div className="dim" style={{ marginTop: 6, fontSize: 13.5 }}>You can change this later. Your team will see it in the sidebar.</div>
+
+          <div style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div>
+              <label className="label">Workspace name</label>
+              <input className="input" placeholder="Acme, Inc." value={org.name}
+                onChange={(e) => setOrg(o => ({ ...o, name: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") }))} />
+            </div>
+            <div>
+              <label className="label">URL slug</label>
+              <div style={{ position: "relative" }}>
+                <input className="input" placeholder="acme" value={org.slug} onChange={(e) => setOrg(o => ({ ...o, slug: e.target.value }))} style={{ paddingLeft: 84 }} />
+                <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "var(--dim)", fontSize: 13, fontFamily: "var(--font-mono)", pointerEvents: "none" }}>einkal.com/</span>
+              </div>
+            </div>
+            <div>
+              <label className="label">How big is your team?</label>
+              <Segmented value={org.size} onChange={(v) => setOrg(o => ({ ...o, size: v }))}
+                options={["Just me", "2-4", "5-25", "26+"]} />
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 8, marginTop: 28 }}>
+            <button className="btn primary lg" style={{ flex: 1 }} onClick={() => setStep(1)} disabled={!org.name}>
+              Continue <I.ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === 1 && (
+        <div className="fade-in">
+          <h2 style={{ margin: 0, fontSize: 26, fontWeight: 500, letterSpacing: "-0.015em" }}>What's your role?</h2>
+          <div className="dim" style={{ marginTop: 6, fontSize: 13.5 }}>This helps us tune defaults. You'll be the workspace owner.</div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 22 }}>
+            {[
+              { id: "founder", icon: <I.Sparkles size={15} />, l: "Founder", b: "Solo or co-founder" },
+              { id: "lead", icon: <I.Team size={15} />, l: "Team lead", b: "Manage 2+ people" },
+              { id: "ic", icon: <I.User size={15} />, l: "Individual", b: "Heads-down maker" },
+              { id: "ea", icon: <I.Calendar size={15} />, l: "Executive assistant", b: "Manage others' time" },
+            ].map(r => (
+              <button key={r.id} onClick={() => setOrg(o => ({ ...o, role: r.id }))}
+                style={{
+                  padding: "14px 14px",
+                  background: org.role === r.id ? "var(--accent-bg)" : "var(--surface)",
+                  border: org.role === r.id ? "1px solid var(--accent)" : "0.5px solid var(--border)",
+                  borderRadius: 10, textAlign: "left",
+                  display: "flex", flexDirection: "column", gap: 4,
+                }}>
+                <div style={{ color: org.role === r.id ? "var(--accent)" : "var(--dim)" }}>{r.icon}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 500 }}>{r.l}</div>
+                <div className="dim" style={{ fontSize: 11.5 }}>{r.b}</div>
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 8, marginTop: 28 }}>
+            <button className="btn lg" onClick={() => setStep(0)}><I.ArrowLeft size={13} /> Back</button>
+            <button className="btn primary lg" style={{ flex: 1 }} onClick={() => setStep(2)}>Continue <I.ArrowRight size={14} /></button>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="fade-in">
+          <h2 style={{ margin: 0, fontSize: 26, fontWeight: 500, letterSpacing: "-0.015em" }}>Invite your team.</h2>
+          <div className="dim" style={{ marginTop: 6, fontSize: 13.5 }}>Calendar sync is a team sport. Add the people who'll connect their own calendars.</div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 22 }}>
+            {invites.map((inv, i) => (
+              <div key={i} style={{ display: "flex", gap: 6 }}>
+                <input className="input" placeholder="teammate@company.com" style={{ flex: 1 }}
+                  value={inv.email}
+                  onChange={(e) => setInvites(invs => invs.map((x, j) => j === i ? { ...x, email: e.target.value } : x))} />
+                <select className="input select" style={{ width: 110 }} value={inv.role}
+                  onChange={(e) => setInvites(invs => invs.map((x, j) => j === i ? { ...x, role: e.target.value } : x))}>
+                  <option value="admin">Admin</option>
+                  <option value="member">Member</option>
+                  <option value="billing">Billing</option>
+                </select>
+                <button className="iconbtn" onClick={() => setInvites(invs => invs.filter((_, j) => j !== i))} style={{ width: 32, height: 32 }}>
+                  <I.X size={13} />
+                </button>
+              </div>
+            ))}
+            <button className="btn ghost sm" style={{ alignSelf: "flex-start", marginTop: 4 }}
+              onClick={() => setInvites(invs => [...invs, { email: "", role: "member" }])}>
+              <I.Plus size={12} /> Add another
+            </button>
+          </div>
+
+          <div style={{ marginTop: 18, padding: "10px 12px", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 8, display: "flex", gap: 9, alignItems: "flex-start" }}>
+            <I.Info size={13} style={{ color: "var(--dim)", marginTop: 1 }} />
+            <div className="dim" style={{ fontSize: 12, lineHeight: 1.5 }}>
+              Each teammate connects their <strong style={{ color: "var(--text-2)" }}>own</strong> calendars. EinKal never reads events you don't explicitly sync.
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 8, marginTop: 24 }}>
+            <button className="btn lg" onClick={() => setStep(1)}><I.ArrowLeft size={13} /> Back</button>
+            <button className="btn lg" onClick={() => setStep(3)}>Skip for now</button>
+            <button className="btn primary lg" style={{ flex: 1 }} onClick={() => setStep(3)}>Send invites <I.ArrowRight size={14} /></button>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="fade-in" style={{ textAlign: "center" }}>
+          <div style={{
+            width: 64, height: 64, margin: "0 auto 20px",
+            borderRadius: 18, display: "flex", alignItems: "center", justifyContent: "center",
+            background: "var(--accent-bg)", color: "var(--accent)",
+          }}>
+            <I.Check size={28} />
+          </div>
+          <h2 style={{ margin: 0, fontSize: 28, fontWeight: 500, letterSpacing: "-0.015em" }}>You're in.</h2>
+          <div className="dim" style={{ marginTop: 8, fontSize: 14, lineHeight: 1.55 }}>
+            Workspace <strong style={{ color: "var(--text)" }}>{org.name || "Levitate Data"}</strong> is ready. Next stop: connect your first calendar.
+          </div>
+          <button className="btn primary lg" style={{ marginTop: 28, minWidth: 200 }} onClick={onDone}>
+            Open EinKal <I.ArrowRight size={14} />
+          </button>
+        </div>
+      )}
+    </AuthShell>
+  );
+}
+
+function Stepper({ count, current }) {
+  return (
+    <div style={{ display: "flex", gap: 4, marginBottom: 22 }}>
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} style={{
+          height: 3, flex: 1, borderRadius: 2,
+          background: i <= current ? "var(--accent)" : "var(--border)",
+          transition: "background 0.3s",
+        }} />
+      ))}
+    </div>
+  );
+}
+
+function OnboardingHero({ step, steps }) {
+  return (
+    <div style={{ position: "absolute", inset: 0, padding: "56px 56px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--accent)", marginBottom: 18 }}>
+        Setup · step {step + 1} of {steps.length}
+      </div>
+      <h2 style={{ fontWeight: 700, fontSize: 46, lineHeight: 1.04, margin: 0, letterSpacing: "-0.035em" }}>
+        {step === 0 && <>A home base <br />for your <span style={{ color: "var(--accent)" }}>calendars.</span></>}
+        {step === 1 && <>Tell us how you <br />actually <span style={{ color: "var(--accent)" }}>work.</span></>}
+        {step === 2 && <>Better <span style={{ color: "var(--accent)" }}>together.</span></>}
+        {step === 3 && <>Welcome to <br />the <span style={{ color: "var(--accent)" }}>quiet life.</span></>}
+      </h2>
+      <div style={{ marginTop: 18, fontSize: 15, lineHeight: 1.6, color: "var(--text-2)", maxWidth: 420 }}>
+        {step === 0 && "One workspace, every calendar, every account. Your team plans on their own — EinKal keeps the lights on."}
+        {step === 1 && "We'll preset sync flows for your role. Tighter privacy if you manage people. Working-hours-only if you're a maker."}
+        {step === 2 && "Each teammate keeps full control. They wire up their own accounts. You manage seats and billing."}
+        {step === 3 && "Two more minutes to your first sync. Let's go."}
+      </div>
+
+      <div style={{ marginTop: 36, display: "flex", flexDirection: "column", gap: 10, maxWidth: 420 }}>
+        {steps.map((s, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, opacity: i <= step ? 1 : 0.4, transition: "opacity 0.3s" }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: "50%",
+              background: i < step ? "var(--accent)" : i === step ? "var(--accent-bg)" : "var(--surface)",
+              border: i === step ? "1px solid var(--accent)" : "0.5px solid var(--border)",
+              color: i < step ? "var(--ink-on-accent)" : "var(--text-2)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 10.5, fontWeight: 600,
+            }}>
+              {i < step ? <I.Check size={11} /> : i + 1}
+            </div>
+            <div style={{ fontSize: 13.5, fontWeight: i === step ? 500 : 400 }}>{s}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { SignIn, Onboarding, AuthShell });
+
+  </script>
+
+  <!-- screens-calendars -->
+  <script type="text/babel" data-presets="react">
+// screens-calendars.jsx — Calendars screen + Connect modal
+
+const { useState: useStateC, useEffect: useEffectC } = React;
+
+function CalendarsScreen() {
+  const { state, updateCalendar, removeAccount, addAccount, pushActivity } = useStore();
+  const toast = useToast();
+  const [connectOpen, setConnectOpen] = useStateC(false);
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <PageHeader
+        title="Calendars"
+        subtitle="Connect Google and Microsoft accounts. Pick a color and decide what's visible by default."
+        actions={
+          <button className="btn primary" onClick={() => setConnectOpen(true)}>
+            <I.Plus size={13} /> Connect calendar
+          </button>
+        }
+      />
+
+      <div style={{ flex: 1, overflow: "auto", padding: "32px 32px 40px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {state.accounts.map((acc) => (
+            <AccountCard key={acc.id} account={acc}
+              onUpdate={(calId, patch) => updateCalendar(calId, patch)}
+              onRemove={() => {
+                if (confirm(`Disconnect ${acc.email}? This won't delete events, but syncs using these calendars will pause.`)) {
+                  removeAccount(acc.id);
+                  pushActivity(`Disconnected ${acc.email}`, "connect");
+                  toast(`${acc.email} disconnected`, "info");
+                }
+              }} />
+          ))}
+
+          {/* connect cta */}
+          <button onClick={() => setConnectOpen(true)} style={{
+            padding: "24px", borderRadius: 12,
+            border: "1px dashed var(--border-hi)",
+            background: "transparent",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+            color: "var(--dim)", fontSize: 13.5,
+            transition: "background 0.12s, color 0.12s, border-color 0.12s",
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface)"; e.currentTarget.style.color = "var(--text-2)"; e.currentTarget.style.borderColor = "var(--accent)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--dim)"; e.currentTarget.style.borderColor = "var(--border-hi)"; }}>
+            <I.Plus size={14} /> Connect another account
+          </button>
+        </div>
+      </div>
+
+      <ConnectModal open={connectOpen} onClose={() => setConnectOpen(false)} onConnect={(acc) => {
+        addAccount(acc);
+        pushActivity(`Connected ${acc.email}`, "connect");
+        toast(`Connected ${acc.email}`, "ok");
+        setConnectOpen(false);
+      }} />
+    </div>
+  );
+}
+
+function AccountCard({ account, onUpdate, onRemove }) {
+  const [open, setOpen] = useStateC(false);
+  const Mark = account.provider === "google" ? Provider.Google : Provider.Microsoft;
+
+  return (
+    <div className="card" style={{ overflow: "hidden" }}>
+      <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+        <button onClick={() => setOpen(o => !o)} className="iconbtn" style={{ marginLeft: -6 }}>
+          <I.Chevron size={13} style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s" }} />
+        </button>
+        <div style={{
+          width: 36, height: 36, borderRadius: 8,
+          background: "var(--surface-hi)", border: "0.5px solid var(--border)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <Mark size={18} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 500 }}>{account.email}</span>
+            <span className="chip">{account.label}</span>
+            {account.status === "active" && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "var(--ok)" }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--ok)" }} />
+                Active
+              </span>
+            )}
+          </div>
+          <div className="dim" style={{ fontSize: 12, marginTop: 2 }}>
+            {account.provider === "google" ? "Google Calendar" : "Microsoft Outlook"} · {account.calendars.length} calendar{account.calendars.length === 1 ? "" : "s"} · connected {account.connectedAt}
+          </div>
+        </div>
+        <button className="btn sm"><I.Refresh size={12} /> Sync now</button>
+        <button className="btn sm danger" onClick={onRemove}><I.Unlink size={12} /> Disconnect</button>
+      </div>
+
+      {open && (
+        <>
+          <div className="hr" />
+          <div style={{ padding: "4px 0" }}>
+            <CalendarTableHeader />
+            {account.calendars.map((cal) => (
+              <CalendarRow key={cal.id} cal={cal} onUpdate={(patch) => onUpdate(cal.id, patch)} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CalendarTableHeader() {
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "32px 1fr 110px 100px 80px 50px",
+      gap: 14, padding: "6px 18px 6px 22px",
+      fontSize: 10.5, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase",
+      color: "var(--muted)",
+    }}>
+      <span></span>
+      <span>Calendar</span>
+      <span>Role</span>
+      <span>In syncs</span>
+      <span>Visible</span>
+      <span></span>
+    </div>
+  );
+}
+
+function CalendarRow({ cal, onUpdate }) {
+  const { state } = useStore();
+  const inSyncs = state.flows.filter(f => f.sources.includes(cal.id) || f.destinations.includes(cal.id)).length;
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "32px 1fr 110px 100px 80px 50px",
+      gap: 14, padding: "10px 18px 10px 22px",
+      alignItems: "center",
+      borderTop: "0.5px solid var(--divider)",
+    }}>
+      <ColorSwatch value={cal.color} onChange={(v) => onUpdate({ color: v })} />
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 13.5, fontWeight: 450, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cal.name}</span>
+          {cal.primary && <span className="chip" style={{ height: 18, fontSize: 10, padding: "0 6px" }}>Primary</span>}
+        </div>
+      </div>
+      <div className="dim" style={{ fontSize: 12, textTransform: "capitalize" }}>{cal.role}</div>
+      <div>
+        {inSyncs > 0 ? (
+          <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>{inSyncs} flow{inSyncs === 1 ? "" : "s"}</span>
+        ) : (
+          <span className="dim" style={{ fontSize: 12 }}>—</span>
+        )}
+      </div>
+      <button className={"toggle " + (cal.visible ? "on" : "")} onClick={() => onUpdate({ visible: !cal.visible })} />
+      <button className="iconbtn"><I.More size={14} /></button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Connect modal — provider chooser + fake OAuth
+// ─────────────────────────────────────────────────────────────────
+function ConnectModal({ open, onClose, onConnect }) {
+  const [step, setStep] = useStateC(0);
+  const [provider, setProvider] = useStateC(null);
+  const [authing, setAuthing] = useStateC(false);
+
+  useEffectC(() => { if (open) { setStep(0); setProvider(null); setAuthing(false); } }, [open]);
+
+  const handlePick = (p) => {
+    setProvider(p);
+    setStep(1);
+    setAuthing(true);
+    setTimeout(() => { setAuthing(false); setStep(2); }, 1100);
+  };
+
+  const handleFinish = (label) => {
+    const isGoogle = provider === "google";
+    const id = "acc-" + Math.random().toString(36).slice(2, 6);
+    const calBase = id + "-c";
+    onConnect({
+      id, provider, email: isGoogle ? "new.account@gmail.com" : "new.account@outlook.com",
+      label, connectedAt: "today", status: "active",
+      calendars: [
+        { id: calBase + "1", name: isGoogle ? "new.account@gmail.com" : "new.account@outlook.com", color: "#5ba6f0", primary: true, visible: true, role: "owner" },
+        { id: calBase + "2", name: "Birthdays", color: "#dc6c9b", primary: false, visible: false, role: "reader" },
+      ],
+    });
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Connect a calendar" width={520}>
+      {step === 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="dim" style={{ fontSize: 13, marginBottom: 4 }}>
+            Choose a provider. We'll redirect you to authorize EinKal — read-only by default. You'll pick which calendars to actually use on the next screen.
+          </div>
+          <ProviderRow icon={<Provider.Google size={20} />} name="Google Calendar" sub="Personal, Workspace, or School accounts" onClick={() => handlePick("google")} />
+          <ProviderRow icon={<Provider.Microsoft size={20} />} name="Microsoft Outlook" sub="Personal, Office 365, Exchange" onClick={() => handlePick("microsoft")} />
+          <div style={{ marginTop: 10, padding: "10px 12px", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 8, display: "flex", gap: 9 }}>
+            <I.Shield size={14} style={{ color: "var(--ok)", marginTop: 1 }} />
+            <div style={{ fontSize: 12, lineHeight: 1.5 }} className="t2">
+              EinKal reads event metadata to mirror it. We never read attendee email content. <a style={{ color: "var(--accent)", cursor: "default" }}>Privacy details</a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 1 && (
+        <div style={{ padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center",
+            background: "var(--surface-hi)", border: "0.5px solid var(--border)",
+          }}>
+            {provider === "google" ? <Provider.Google size={28} /> : <Provider.Microsoft size={28} />}
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 500 }}>Authorizing with {provider === "google" ? "Google" : "Microsoft"}…</div>
+          <Spinner />
+          <div className="dim" style={{ fontSize: 12, textAlign: "center", maxWidth: 320 }}>
+            You'd normally see a provider consent screen here. We're skipping it for the demo.
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <ConnectFinish provider={provider} onCancel={onClose} onFinish={handleFinish} />
+      )}
+    </Modal>
+  );
+}
+
+function ProviderRow({ icon, name, sub, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      width: "100%", padding: "12px 14px",
+      display: "flex", alignItems: "center", gap: 12,
+      background: "var(--surface)", border: "0.5px solid var(--border)",
+      borderRadius: 9, textAlign: "left",
+      transition: "background 0.12s, border-color 0.12s",
+    }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface-hi)"; e.currentTarget.style.borderColor = "var(--border-hi)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "var(--surface)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
+      {icon}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 500 }}>{name}</div>
+        <div className="dim" style={{ fontSize: 11.5, marginTop: 1 }}>{sub}</div>
+      </div>
+      <I.ArrowRight size={14} style={{ color: "var(--dim)" }} />
+    </button>
+  );
+}
+
+function ConnectFinish({ provider, onFinish, onCancel }) {
+  const [label, setLabel] = useStateC("Work");
+  const [picked, setPicked] = useStateC({});
+  // mock list of calendars discovered from the provider
+  const discovered = provider === "google"
+    ? [
+      { id: "d1", name: "new.account@gmail.com", primary: true },
+      { id: "d2", name: "Birthdays" },
+      { id: "d3", name: "Holidays in US" },
+      { id: "d4", name: "Side project" },
+    ]
+    : [
+      { id: "d1", name: "new.account@outlook.com", primary: true },
+      { id: "d2", name: "Birthdays" },
+      { id: "d3", name: "Team — Marketing" },
+    ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 14 }}>
+        <label className="label">Label</label>
+        <input className="input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Work, Personal, Consulting" />
+        <div className="help">Helps you tell accounts apart. Shows up in the sidebar.</div>
+      </div>
+      <label className="label">Which calendars should EinKal see?</label>
+      <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+        {discovered.map((c, i) => {
+          const on = picked[c.id] !== false; // default on
+          return (
+            <div key={c.id} style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 12px",
+              borderTop: i === 0 ? "none" : "0.5px solid var(--divider)",
+            }}>
+              <button className={"toggle " + (on ? "on" : "")} onClick={() => setPicked(p => ({ ...p, [c.id]: !on }))} />
+              <span style={{ fontSize: 13, fontWeight: 450 }}>{c.name}</span>
+              {c.primary && <span className="chip" style={{ height: 18, fontSize: 10 }}>Primary</span>}
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 18, justifyContent: "flex-end" }}>
+        <button className="btn" onClick={onCancel}>Cancel</button>
+        <button className="btn primary" onClick={() => onFinish(label)}>
+          <I.Check size={13} /> Add account
+        </button>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { CalendarsScreen });
+
+  </script>
+
+  <!-- screens-sync -->
+  <script type="text/babel" data-presets="react">
+// screens-sync.jsx — Sync flows list + builder (two layout variants)
+
+const { useState: useStateS, useEffect: useEffectS, useMemo: useMemoS, useRef: useRefS } = React;
+
+// ─────────────────────────────────────────────────────────────────
+// Sync flows list
+// ─────────────────────────────────────────────────────────────────
+function SyncScreen({ openFlow, setOpenFlow, builderLayout }) {
+  const { state, removeFlow, updateFlow, addFlow, pushActivity } = useStore();
+  const toast = useToast();
+  const [filter, setFilter] = useStateS("all");
+  const [query, setQuery] = useStateS("");
+
+  const filtered = useMemoS(() => {
+    return state.flows.filter(f => {
+      if (filter === "active" && f.paused) return false;
+      if (filter === "paused" && !f.paused) return false;
+      if (query && !f.name.toLowerCase().includes(query.toLowerCase())) return false;
+      return true;
+    });
+  }, [state.flows, filter, query]);
+
+  if (openFlow !== null) {
+    return <FlowBuilder
+      flowId={openFlow === "new" ? null : openFlow}
+      layout={builderLayout}
+      onClose={() => setOpenFlow(null)}
+      onSave={(flow) => {
+        if (openFlow === "new") {
+          addFlow(flow);
+          pushActivity(`Created flow "${flow.name}"`, "flow");
+          toast("New flow created — running…", "ok");
+        } else {
+          updateFlow(openFlow, flow);
+          pushActivity(`Updated flow "${flow.name}"`, "flow");
+          toast("Flow updated", "ok");
+        }
+        setOpenFlow(null);
+      }}
+    />;
+  }
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <PageHeader
+        title="Sync flows"
+        subtitle="Each flow is a one-way or two-way rule: which calendars feed which, what details travel, what stays hidden."
+        actions={
+          <button className="btn primary" onClick={() => setOpenFlow("new")}>
+            <I.Plus size={13} /> New flow
+          </button>
+        }
+      />
+
+      {/* sub-toolbar */}
+      <div style={{ padding: "14px 32px", display: "flex", alignItems: "center", gap: 12, borderBottom: "0.5px solid var(--divider)" }}>
+        <Segmented value={filter} onChange={setFilter} size="sm"
+          options={[
+            { value: "all", label: `All ${state.flows.length}` },
+            { value: "active", label: `Active ${state.flows.filter(f => !f.paused).length}` },
+            { value: "paused", label: `Paused ${state.flows.filter(f => f.paused).length}` },
+          ]} />
+        <div style={{ flex: 1 }} />
+        <div style={{ position: "relative", width: 240 }}>
+          <I.Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }} />
+          <input className="input" placeholder="Search flows" style={{ height: 28, paddingLeft: 30, fontSize: 12.5 }} value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflow: "auto", padding: "16px 32px 40px" }}>
+        {filtered.length === 0 ? (
+          <Empty
+            icon={<I.Sync size={32} />}
+            title={query ? "No flows match" : "No flows yet"}
+            body={query ? "Try a different search." : "Wire up your first sync — pick a source, pick a destination, choose how loud or quiet it should be."}
+            action={!query && <button className="btn primary" onClick={() => setOpenFlow("new")}><I.Plus size={13} /> Create a flow</button>}
+          />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {filtered.map(f => (
+              <FlowCard key={f.id} flow={f}
+                onOpen={() => setOpenFlow(f.id)}
+                onTogglePause={() => { updateFlow(f.id, { paused: !f.paused }); toast(f.paused ? "Flow resumed" : "Flow paused", "info"); }}
+                onDelete={() => { if (confirm(`Delete flow "${f.name}"? Mirror events on destinations will be cleaned up.`)) { removeFlow(f.id); toast("Flow deleted", "info"); } }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FlowCard({ flow, onOpen, onTogglePause, onDelete }) {
+  const { state } = useStore();
+  const srcs = flow.sources.map(id => findCalendar(state.accounts, id)).filter(Boolean);
+  const dsts = flow.destinations.map(id => findCalendar(state.accounts, id)).filter(Boolean);
+  const privacy = PRIVACY_PRESETS.find(p => p.id === flow.privacy);
+
+  // plain-language summary
+  const summary = (() => {
+    const parts = [];
+    if (flow.privacy === "busy") parts.push("shown as Busy");
+    else if (flow.privacy === "title") parts.push("titles only");
+    else if (flow.privacy === "titletime") parts.push("titles & times");
+    else if (flow.privacy === "full") parts.push("full details");
+    else if (flow.privacy === "template") parts.push(`shown as "${flow.template}"`);
+    if (flow.stripAttendees) parts.push("no attendees");
+    if (flow.workingHoursOnly) parts.push("9–6 only");
+    if (flow.hideWeekends) parts.push("weekdays only");
+    return parts.join(" · ");
+  })();
+
+  return (
+    <button onClick={onOpen} className="card" style={{
+      padding: 0, textAlign: "left", display: "block", overflow: "hidden",
+      transition: "border-color 0.12s, background 0.12s",
+    }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-hi)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}>
+
+      {/* Title row */}
+      <div style={{ padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, borderBottom: "0.5px solid var(--divider)" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14.5, fontWeight: 500, color: "var(--text)" }}>{flow.name}</div>
+          <div className="dim" style={{ fontSize: 11, marginTop: 2 }}>
+            Last run <span style={{ color: "var(--text-2)" }}>{flow.lastRun}</span> · <span style={{ color: "var(--text-2)" }} className="tabnum">{flow.eventsSynced.toLocaleString()}</span> events
+          </div>
+        </div>
+        {flow.paused
+          ? <span className="dim" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--muted)" }} /> Paused
+            </span>
+          : <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--text-2)" }}>
+              <span className="pulse" /> Running
+            </span>}
+        <div style={{ width: 0.5, height: 16, background: "var(--divider)", margin: "0 4px" }} />
+        <button className="iconbtn" onClick={(e) => { e.stopPropagation(); onTogglePause(); }} data-tip={flow.paused ? "Resume" : "Pause"}>
+          {flow.paused ? <I.Play size={13} /> : <I.Pause size={13} />}
+        </button>
+        <button className="iconbtn" onClick={(e) => { e.stopPropagation(); onDelete(); }} data-tip="Delete"><I.Trash size={13} /></button>
+        <I.Chevron size={13} style={{ color: "var(--muted)" }} />
+      </div>
+
+      {/* From → To */}
+      <div style={{
+        padding: "16px 18px",
+        display: "grid", gridTemplateColumns: "1fr 56px 1fr", gap: 14, alignItems: "center",
+      }}>
+        <FlowSide label="From" cals={srcs} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: "var(--text-2)" }}>
+          {flow.direction === "two-way" ? <I.ArrowsLR size={16} /> : <I.ArrowRight size={16} />}
+          <span className="dim" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+            {flow.direction === "two-way" ? "Two-way" : "One-way"}
+          </span>
+        </div>
+        <FlowSide label="To" cals={dsts} />
+      </div>
+
+      {/* Plain-language footer */}
+      <div style={{
+        padding: "10px 18px",
+        borderTop: "0.5px solid var(--divider)",
+        background: "var(--bg-1)",
+        display: "flex", alignItems: "center", gap: 8,
+        fontSize: 12, color: "var(--text-2)",
+      }}>
+        <I.Lock size={11} style={{ color: "var(--dim)" }} />
+        <span>{summary}</span>
+      </div>
+    </button>
+  );
+}
+
+function FlowSide({ label, cals }) {
+  if (!cals.length) return <div className="dim" style={{ fontSize: 12 }}>—</div>;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 5, minWidth: 0 }}>
+      <div className="dim" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase" }}>
+        {label} <span style={{ marginLeft: 4, color: "var(--muted)", fontWeight: 500 }}>{cals.length}</span>
+      </div>
+      {cals.slice(0, 3).map(c => {
+        const Mark = c.account.provider === "google" ? Provider.Google : Provider.Microsoft;
+        return (
+          <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 450, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</span>
+            <Mark size={10} />
+            <span className="dim" style={{ fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.account.email}</span>
+          </div>
+        );
+      })}
+      {cals.length > 3 && <span className="dim" style={{ fontSize: 11 }}>+{cals.length - 3} more</span>}
+    </div>
+  );
+}
+
+function CalendarStack({ cals, align = "right" }) {
+  if (!cals.length) return <span className="dim" style={{ fontSize: 12 }}>—</span>;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+      {cals.slice(0, 3).map(c => <CalChip key={c.id} cal={c} align={align} />)}
+      {cals.length > 3 && <span className="dim" style={{ fontSize: 11 }}>+{cals.length - 3} more</span>}
+    </div>
+  );
+}
+
+function CalChip({ cal, align = "right" }) {
+  const Mark = cal.account.provider === "google" ? Provider.Google : Provider.Microsoft;
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 7,
+      padding: "5px 9px", borderRadius: 6,
+      background: "var(--surface)", border: "0.5px solid var(--border)",
+    }}>
+      <div style={{ width: 8, height: 8, borderRadius: 2, background: cal.color }} />
+      <span style={{ fontSize: 12, fontWeight: 450 }}>{cal.name.length > 32 ? cal.name.slice(0, 30) + "…" : cal.name}</span>
+      <span style={{ marginLeft: 4 }}><Mark size={11} /></span>
+    </div>
+  );
+}
+
+function DirectionArrow({ direction }) {
+  return (
+    <div style={{
+      width: 56, display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+      color: "var(--accent)",
+    }}>
+      {direction === "two-way" ? <I.ArrowsLR size={18} /> : <I.ArrowRight size={18} />}
+      <span style={{ fontSize: 9.5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--muted)" }}>
+        {direction === "two-way" ? "Two-way" : "One-way"}
+      </span>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Flow builder — dispatches between layouts
+// ─────────────────────────────────────────────────────────────────
+function FlowBuilder({ flowId, layout, onClose, onSave }) {
+  const { state } = useStore();
+  const existing = flowId ? state.flows.find(f => f.id === flowId) : null;
+  const [draft, setDraft] = useStateS(existing || {
+    name: "Untitled flow",
+    sources: [],
+    destinations: [],
+    direction: "one-way",
+    privacy: "busy",
+    template: "Busy",
+    stripAttendees: true,
+    workingHoursOnly: false,
+    hideWeekends: false,
+    declined: "skip",
+    paused: false,
+    lastRun: "never",
+    eventsSynced: 0,
+  });
+  const patch = (p) => setDraft(d => ({ ...d, ...p }));
+
+  // Auto: if two-way, sources must match destinations conceptually
+  const canSave = draft.name.trim().length > 0 && draft.sources.length > 0 && draft.destinations.length > 0;
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* header bar */}
+      <div style={{
+        padding: "14px 24px", display: "flex", alignItems: "center", gap: 12,
+        borderBottom: "0.5px solid var(--divider)", background: "var(--bg)",
+      }}>
+        <button className="btn ghost sm" onClick={onClose}><I.ArrowLeft size={13} /> Back</button>
+        <div className="dim" style={{ fontSize: 12 }}>/</div>
+        <input value={draft.name} onChange={(e) => patch({ name: e.target.value })}
+          style={{
+            background: "transparent", border: 0, outline: 0, color: "var(--text)",
+            fontSize: 15, fontWeight: 500, padding: "4px 8px", borderRadius: 5,
+            minWidth: 240,
+          }}
+          onFocus={(e) => e.currentTarget.style.background = "var(--surface)"}
+          onBlur={(e) => e.currentTarget.style.background = "transparent"}
+          placeholder="Flow name" />
+        <div style={{ flex: 1 }} />
+        <span className="chip" style={{ fontSize: 11 }}>
+          {layout === "canvas" ? "Canvas layout" : "Linear layout"}
+        </span>
+        <button className="btn" onClick={onClose}>Cancel</button>
+        <button className="btn primary" onClick={() => onSave(draft)} disabled={!canSave}>
+          <I.Check size={13} /> Save flow
+        </button>
+      </div>
+
+      {layout === "canvas"
+        ? <CanvasBuilder draft={draft} patch={patch} />
+        : <LinearBuilder draft={draft} patch={patch} />}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// LINEAR layout — vertical, step-by-step
+// ─────────────────────────────────────────────────────────────────
+function LinearBuilder({ draft, patch }) {
+  const [filtersOpen, setFiltersOpen] = useStateS(
+    draft.stripAttendees || draft.workingHoursOnly || draft.hideWeekends || draft.declined !== "skip"
+  );
+
+  return (
+    <div style={{ flex: 1, overflow: "auto", padding: "32px 32px 60px", background: "var(--bg-1)" }}>
+      <div style={{ maxWidth: 780, margin: "0 auto", display: "flex", flexDirection: "column", gap: 18 }}>
+
+        {/* From → To — the heart of the flow, all in one visual */}
+        <div className="card" style={{ padding: "22px 24px" }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 60px 1fr",
+            gap: 16, alignItems: "stretch",
+          }}>
+            <PickerColumn
+              label="From"
+              hint="Source"
+              selected={draft.sources}
+              onChange={(ids) => patch({ sources: ids })}
+              placeholder="Pick a calendar"
+            />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <button
+                onClick={() => patch({ direction: draft.direction === "two-way" ? "one-way" : "two-way" })}
+                title={draft.direction === "two-way" ? "Two-way · click to switch" : "One-way · click to switch"}
+                style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  background: "var(--accent-bg)",
+                  border: "1px solid var(--accent)",
+                  color: "var(--accent)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "transform 0.15s",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.06)"}
+                onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+              >
+                {draft.direction === "two-way" ? <I.ArrowsLR size={18} /> : <I.ArrowRight size={18} />}
+              </button>
+              <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--muted)" }}>
+                {draft.direction === "two-way" ? "Two-way" : "One-way"}
+              </span>
+            </div>
+            <PickerColumn
+              label="To"
+              hint="Destination"
+              selected={draft.destinations}
+              onChange={(ids) => patch({ destinations: ids })}
+              placeholder="Pick a calendar"
+              excludeIds={draft.sources}
+              align="right"
+            />
+          </div>
+        </div>
+
+        {/* Privacy — horizontal pill row */}
+        <div className="card" style={{ padding: "18px 22px" }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>What travels?</div>
+              <div className="dim" style={{ fontSize: 12, marginTop: 2 }}>How much of each event the destination sees.</div>
+            </div>
+          </div>
+          <PrivacyPills value={draft.privacy} onChange={(v) => patch({ privacy: v })} />
+          {draft.privacy === "template" && (
+            <div style={{ marginTop: 12, padding: "10px 12px", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 8, display: "flex", alignItems: "center", gap: 10 }}>
+              <span className="dim" style={{ fontSize: 12, whiteSpace: "nowrap" }}>Title becomes</span>
+              <input className="input" style={{ height: 30, fontSize: 12.5 }} value={draft.template} onChange={(e) => patch({ template: e.target.value })} placeholder="Busy — Work" />
+            </div>
+          )}
+          <div style={{ marginTop: 12 }}>
+            <PrivacyPreview privacy={draft.privacy} template={draft.template} />
+          </div>
+        </div>
+
+        {/* Filters — collapsed by default, expand when needed */}
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+          <button onClick={() => setFiltersOpen(o => !o)} style={{
+            width: "100%", padding: "14px 22px",
+            display: "flex", alignItems: "center", gap: 10,
+            textAlign: "left",
+            transition: "background 0.12s",
+          }}
+            onMouseEnter={(e) => e.currentTarget.style.background = "var(--hover)"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+            <I.Chevron size={12} style={{ transform: filtersOpen ? "rotate(90deg)" : "rotate(0)", transition: "transform 0.15s", color: "var(--dim)" }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>Filters &amp; cleanup <span className="dim" style={{ fontWeight: 400, fontSize: 12 }}>(optional)</span></div>
+              <div className="dim" style={{ fontSize: 12, marginTop: 2 }}>
+                {[
+                  draft.stripAttendees && "strip attendees",
+                  draft.workingHoursOnly && "work hours only",
+                  draft.hideWeekends && "skip weekends",
+                  draft.declined !== "skip" && "include declined",
+                ].filter(Boolean).join(" · ") || "Sync everything"}
+              </div>
+            </div>
+          </button>
+          {filtersOpen && (
+            <div style={{ padding: "4px 22px 16px", borderTop: "0.5px solid var(--divider)" }}>
+              <FilterRow label="Strip attendees" desc="Don't include the guest list on mirrored events."
+                value={draft.stripAttendees} onChange={(v) => patch({ stripAttendees: v })} />
+              <FilterRow label="Working hours only" desc="Only mirror events between 9 AM and 6 PM your time."
+                value={draft.workingHoursOnly} onChange={(v) => patch({ workingHoursOnly: v })} />
+              <FilterRow label="Skip weekends" desc="Saturdays and Sundays stay private."
+                value={draft.hideWeekends} onChange={(v) => patch({ hideWeekends: v })} />
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0 4px", borderTop: "0.5px solid var(--divider)", marginTop: 4 }}>
+                <span style={{ flex: 1, fontSize: 13, fontWeight: 450 }}>Declined invitations</span>
+                <Segmented value={draft.declined} onChange={(v) => patch({ declined: v })} size="sm"
+                  options={[{ value: "skip", label: "Skip" }, { value: "include", label: "Include" }]} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <SummaryCard draft={draft} />
+      </div>
+    </div>
+  );
+}
+
+function PickerColumn({ label, hint, selected, onChange, placeholder, excludeIds = [], align = "left" }) {
+  const { state } = useStore();
+  const [open, setOpen] = useStateS(false);
+  const ref = useRefS(null);
+  useEffectS(() => {
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+  const selectedCals = selected.map(id => findCalendar(state.accounts, id)).filter(Boolean);
+
+  return (
+    <div ref={ref} style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
+      <div style={{
+        fontSize: 10.5, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+        color: "var(--muted)", textAlign: align,
+      }}>{label}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 76 }}>
+        {selectedCals.map(c => {
+          const Mark = c.account.provider === "google" ? Provider.Google : Provider.Microsoft;
+          return (
+            <div key={c.id} style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "8px 10px", borderRadius: 8,
+              background: "color-mix(in oklab, " + c.color + " 14%, var(--surface))",
+              borderLeft: `2px solid ${c.color}`,
+              border: "0.5px solid var(--border)",
+              borderLeftWidth: 2,
+            }}>
+              <Mark size={12} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</div>
+                <div className="dim" style={{ fontSize: 10.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.account.email}</div>
+              </div>
+              <button className="iconbtn" style={{ width: 20, height: 20 }} onClick={() => onChange(selected.filter(id => id !== c.id))}>
+                <I.X size={11} />
+              </button>
+            </div>
+          );
+        })}
+        <div style={{ position: "relative" }}>
+          <button onClick={() => setOpen(o => !o)} style={{
+            width: "100%", padding: "10px 12px",
+            background: "transparent", border: "1px dashed var(--border-hi)",
+            borderRadius: 8, fontSize: 12.5, color: selectedCals.length === 0 ? "var(--text-2)" : "var(--dim)",
+            display: "flex", alignItems: "center", gap: 6, justifyContent: "center",
+            transition: "background 0.12s, color 0.12s, border-color 0.12s",
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--accent-bg)"; e.currentTarget.style.color = "var(--accent)"; e.currentTarget.style.borderColor = "var(--accent)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = selectedCals.length === 0 ? "var(--text-2)" : "var(--dim)"; e.currentTarget.style.borderColor = "var(--border-hi)"; }}>
+            <I.Plus size={12} /> {selectedCals.length === 0 ? placeholder : "Add another"}
+          </button>
+          {open && (
+            <CalendarMenu
+              onPick={(id) => { onChange([...selected, id]); setOpen(false); }}
+              exclude={[...selected, ...excludeIds]} />
+          )}
+        </div>
+      </div>
+      {hint && (
+        <div className="dim" style={{ fontSize: 11, textAlign: align, marginTop: 2 }}>
+          {selectedCals.length === 0 ? hint : `${selectedCals.length} calendar${selectedCals.length === 1 ? "" : "s"}`}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PrivacyPills({ value, onChange }) {
+  const items = PRIVACY_PRESETS;
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+      {items.map(p => {
+        const active = value === p.id;
+        return (
+          <button key={p.id} onClick={() => onChange(p.id)}
+            title={p.body}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              padding: "8px 14px", borderRadius: 999,
+              fontSize: 12.5, fontWeight: 500,
+              background: active ? "var(--accent)" : "var(--surface)",
+              color: active ? "var(--ink-on-accent)" : "var(--text-2)",
+              border: active ? "1px solid var(--accent)" : "0.5px solid var(--border)",
+              transition: "all 0.12s",
+            }}
+            onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = "var(--hover)"; e.currentTarget.style.color = "var(--text)"; } }}
+            onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = "var(--surface)"; e.currentTarget.style.color = "var(--text-2)"; } }}>
+            {p.icon === "lock" && <I.Lock size={11} />}
+            {p.icon === "tag" && <I.Tag size={11} />}
+            {p.icon === "clock" && <I.Clock size={11} />}
+            {p.icon === "eye" && <I.Eye size={11} />}
+            {p.icon === "edit" && <I.Edit size={11} />}
+            {p.title}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function BuilderSection({ number, title, subtitle, children }) {
+  return (
+    <div className="card" style={{ padding: 0 }}>
+      <div style={{ padding: "16px 20px 8px", display: "flex", alignItems: "flex-start", gap: 12, borderBottom: "0.5px solid var(--divider)" }}>
+        <div style={{
+          width: 22, height: 22, borderRadius: "50%",
+          background: "var(--surface-hi)", border: "0.5px solid var(--border)",
+          fontSize: 11, fontWeight: 600, color: "var(--text-2)",
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          marginTop: 1,
+        }}>{number}</div>
+        <div style={{ flex: 1, paddingBottom: 8 }}>
+          <div style={{ fontSize: 14, fontWeight: 500 }}>{title}</div>
+          <div className="dim" style={{ fontSize: 12, marginTop: 2 }}>{subtitle}</div>
+        </div>
+      </div>
+      <div style={{ padding: "14px 20px 18px" }}>{children}</div>
+    </div>
+  );
+}
+
+function CalendarPicker({ selected, onChange, placeholder, excludeIds = [] }) {
+  const { state } = useStore();
+  const [open, setOpen] = useStateS(false);
+  const ref = useRefS(null);
+  useEffectS(() => {
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const selectedCals = selected.map(id => findCalendar(state.accounts, id)).filter(Boolean);
+
+  return (
+    <div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {selectedCals.map(c => {
+          const Mark = c.account.provider === "google" ? Provider.Google : Provider.Microsoft;
+          return (
+            <div key={c.id} style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "5px 6px 5px 9px", borderRadius: 7,
+              background: "var(--surface)", border: "0.5px solid var(--border)",
+            }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: c.color }} />
+              <span style={{ fontSize: 12.5, fontWeight: 450 }}>{c.name}</span>
+              <Mark size={11} />
+              <span className="dim" style={{ fontSize: 11 }}>· {c.account.label}</span>
+              <button className="iconbtn" style={{ width: 18, height: 18 }} onClick={() => onChange(selected.filter(id => id !== c.id))}>
+                <I.X size={10} />
+              </button>
+            </div>
+          );
+        })}
+        <div ref={ref} style={{ position: "relative" }}>
+          <button className="btn sm" onClick={() => setOpen(o => !o)}>
+            <I.Plus size={12} /> {selectedCals.length === 0 ? placeholder : "Add another"}
+          </button>
+          {open && (
+            <CalendarMenu
+              onPick={(id) => { onChange([...selected, id]); setOpen(false); }}
+              exclude={[...selected, ...excludeIds]} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CalendarMenu({ onPick, exclude }) {
+  const { state } = useStore();
+  return (
+    <div style={{
+      position: "absolute", top: "calc(100% + 4px)", left: 0,
+      width: 320, maxHeight: 360, overflow: "auto",
+      background: "var(--panel)", border: "0.5px solid var(--border-hi)",
+      borderRadius: 9, boxShadow: "var(--shadow-pop)", zIndex: 20,
+      padding: 6,
+    }}>
+      {state.accounts.map(acc => {
+        const Mark = acc.provider === "google" ? Provider.Google : Provider.Microsoft;
+        return (
+          <div key={acc.id}>
+            <div style={{ padding: "8px 8px 4px", display: "flex", alignItems: "center", gap: 7 }}>
+              <Mark size={11} />
+              <span className="dim" style={{ fontSize: 11, fontWeight: 500 }}>{acc.email}</span>
+            </div>
+            {acc.calendars.map(c => {
+              const disabled = exclude.includes(c.id);
+              return (
+                <button key={c.id} disabled={disabled} onClick={() => onPick(c.id)}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", gap: 9,
+                    padding: "7px 10px", borderRadius: 6,
+                    fontSize: 12.5, opacity: disabled ? 0.4 : 1,
+                  }}
+                  onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = "var(--hover)"; }}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: c.color }} />
+                  <span style={{ flex: 1, textAlign: "left" }}>{c.name}</span>
+                  {disabled && <span className="dim" style={{ fontSize: 10 }}>added</span>}
+                </button>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function PrivacyPicker({ value, onChange, template, onTemplate }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 8 }}>
+        {PRIVACY_PRESETS.map(p => (
+          <button key={p.id} onClick={() => onChange(p.id)}
+            style={{
+              padding: "12px 12px", textAlign: "left",
+              background: value === p.id ? "var(--accent-bg)" : "var(--surface)",
+              border: value === p.id ? "1px solid var(--accent)" : "0.5px solid var(--border)",
+              borderRadius: 9, display: "flex", flexDirection: "column", gap: 4,
+            }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <span style={{ color: value === p.id ? "var(--accent)" : "var(--dim)" }}>
+                {p.icon === "lock" && <I.Lock size={13} />}
+                {p.icon === "tag" && <I.Tag size={13} />}
+                {p.icon === "clock" && <I.Clock size={13} />}
+                {p.icon === "eye" && <I.Eye size={13} />}
+                {p.icon === "edit" && <I.Edit size={13} />}
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>{p.title}</span>
+            </div>
+            <span className="dim" style={{ fontSize: 11.5, lineHeight: 1.45 }}>{p.body}</span>
+          </button>
+        ))}
+      </div>
+      {value === "template" && (
+        <div style={{ marginTop: 4, padding: "12px 14px", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 8 }}>
+          <label className="label">Title template</label>
+          <input className="input" value={template} onChange={(e) => onTemplate(e.target.value)} placeholder="Busy — Work" />
+          <div className="help">Available: <code className="mono">{"{title}"}</code> · <code className="mono">{"{calendar}"}</code> · <code className="mono">{"{source}"}</code></div>
+        </div>
+      )}
+      <PrivacyPreview privacy={value} template={template} />
+    </div>
+  );
+}
+
+function PrivacyPreview({ privacy, template }) {
+  // Show before/after of a real event
+  const sample = { title: "Customer call — Northwind Q4 review", desc: "Discuss renewal terms, pricing.", attendees: ["alex@levitatedata.com", "kira@northwind.co", "+2"], location: "Zoom" };
+  let after;
+  if (privacy === "busy") after = { title: "Busy", desc: null, attendees: null, location: null };
+  else if (privacy === "title") after = { title: sample.title, desc: null, attendees: null, location: null };
+  else if (privacy === "titletime") after = { title: sample.title, desc: null, attendees: null, location: null };
+  else if (privacy === "full") after = sample;
+  else after = { title: template || "Busy", desc: null, attendees: null, location: null };
+
+  return (
+    <div style={{
+      marginTop: 4, padding: 12, background: "var(--bg-1)",
+      border: "0.5px dashed var(--border-hi)", borderRadius: 8,
+      display: "grid", gridTemplateColumns: "1fr 28px 1fr", gap: 12, alignItems: "center",
+    }}>
+      <SamplePreview label="On source" data={sample} accent="#4f78e8" />
+      <div style={{ display: "flex", justifyContent: "center", color: "var(--accent)" }}>
+        <I.ArrowRight size={16} />
+      </div>
+      <SamplePreview label="On destination" data={after} accent="#a45fc6" muted />
+    </div>
+  );
+}
+
+function SamplePreview({ label, data, accent, muted }) {
+  return (
+    <div>
+      <div className="dim" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
+      <div style={{
+        padding: "8px 10px", borderRadius: 6,
+        background: "color-mix(in oklab, " + accent + " 12%, var(--panel))",
+        borderLeft: `2px solid ${accent}`,
+      }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: muted && data.title.toLowerCase().includes("busy") ? "var(--text-2)" : "var(--text)" }}>{data.title}</div>
+        {data.desc && <div className="dim" style={{ fontSize: 11, marginTop: 3 }}>{data.desc}</div>}
+        {data.attendees && (
+          <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 5 }}>
+            <I.User size={10} style={{ color: "var(--dim)" }} />
+            <span className="dim" style={{ fontSize: 10.5 }}>{data.attendees.join(", ")}</span>
+          </div>
+        )}
+        {data.location && (
+          <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3 }}>
+            <I.Globe size={10} style={{ color: "var(--dim)" }} />
+            <span className="dim" style={{ fontSize: 10.5 }}>{data.location}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FilterRow({ label, desc, value, onChange }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0" }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 450 }}>{label}</div>
+        <div className="dim" style={{ fontSize: 11.5, marginTop: 1 }}>{desc}</div>
+      </div>
+      <button className={"toggle " + (value ? "on" : "")} onClick={() => onChange(!value)} />
+    </div>
+  );
+}
+
+function SummaryCard({ draft }) {
+  const { state } = useStore();
+  const srcs = draft.sources.map(id => findCalendar(state.accounts, id)).filter(Boolean);
+  const dsts = draft.destinations.map(id => findCalendar(state.accounts, id)).filter(Boolean);
+  const privacy = PRIVACY_PRESETS.find(p => p.id === draft.privacy);
+
+  if (srcs.length === 0 || dsts.length === 0) {
+    return (
+      <div style={{
+        padding: "14px 18px", background: "color-mix(in oklab, var(--accent) 6%, var(--panel))",
+        border: "0.5px dashed color-mix(in oklab, var(--accent) 40%, var(--border))", borderRadius: 10,
+        display: "flex", alignItems: "center", gap: 10, color: "var(--text-2)", fontSize: 13,
+      }}>
+        <I.Sparkles size={14} style={{ color: "var(--accent)" }} />
+        Pick at least one source and one destination to start syncing.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      padding: "16px 20px", background: "var(--panel)",
+      border: "1px solid var(--accent)", boxShadow: "0 0 0 4px var(--accent-bg)",
+      borderRadius: 12,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <I.Check size={13} style={{ color: "var(--accent)" }} />
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Ready to sync</span>
+      </div>
+      <div style={{ fontSize: 14, lineHeight: 1.65 }}>
+        Events from <strong>{srcs.map(c => c.name).join(", ")}</strong>{" "}
+        will appear on <strong>{dsts.map(c => c.name).join(", ")}</strong>{" "}
+        as <strong style={{ color: "var(--accent)" }}>{privacy?.title.toLowerCase()}</strong>
+        {draft.direction === "two-way" && " — and back the other way"}
+        {draft.stripAttendees && ", with attendees removed"}
+        {draft.workingHoursOnly && ", working hours only"}
+        {draft.hideWeekends && ", weekends skipped"}.
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// CANVAS layout — node graph
+// ─────────────────────────────────────────────────────────────────
+function CanvasBuilder({ draft, patch }) {
+  const { state } = useStore();
+  const srcs = draft.sources.map(id => findCalendar(state.accounts, id)).filter(Boolean);
+  const dsts = draft.destinations.map(id => findCalendar(state.accounts, id)).filter(Boolean);
+
+  return (
+    <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 320px", overflow: "hidden", background: "var(--bg-1)" }}>
+      {/* canvas */}
+      <div style={{
+        position: "relative", overflow: "auto",
+        backgroundImage: "radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0)",
+        backgroundSize: "20px 20px",
+      }}>
+        <div style={{ minHeight: "100%", minWidth: 880, padding: "40px 32px", position: "relative" }}>
+          <CanvasGraph srcs={srcs} dsts={dsts} draft={draft} patch={patch} />
+        </div>
+      </div>
+
+      {/* inspector */}
+      <div style={{
+        borderLeft: "0.5px solid var(--divider)",
+        background: "var(--bg)",
+        overflow: "auto",
+        padding: "20px 20px 40px",
+        display: "flex", flexDirection: "column", gap: 16,
+      }}>
+        <InspectorBlock title="Direction">
+          <Segmented value={draft.direction} onChange={(v) => patch({ direction: v })}
+            options={[
+              { value: "one-way", label: "One-way", icon: <I.ArrowRight size={11} /> },
+              { value: "two-way", label: "Two-way", icon: <I.ArrowsLR size={11} /> },
+            ]} />
+        </InspectorBlock>
+
+        <InspectorBlock title="Privacy">
+          <select className="input select" value={draft.privacy} onChange={(e) => patch({ privacy: e.target.value })}>
+            {PRIVACY_PRESETS.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+          </select>
+          {draft.privacy === "template" && (
+            <input className="input" style={{ marginTop: 6 }} value={draft.template} onChange={(e) => patch({ template: e.target.value })} placeholder="Busy — Work" />
+          )}
+          <div className="help" style={{ marginTop: 6 }}>
+            {PRIVACY_PRESETS.find(p => p.id === draft.privacy)?.body}
+          </div>
+        </InspectorBlock>
+
+        <InspectorBlock title="Filters">
+          <FilterRow label="Strip attendees" desc="" value={draft.stripAttendees} onChange={(v) => patch({ stripAttendees: v })} />
+          <FilterRow label="Working hours only" desc="" value={draft.workingHoursOnly} onChange={(v) => patch({ workingHoursOnly: v })} />
+          <FilterRow label="Skip weekends" desc="" value={draft.hideWeekends} onChange={(v) => patch({ hideWeekends: v })} />
+        </InspectorBlock>
+
+        <InspectorBlock title="When declined">
+          <Segmented value={draft.declined} onChange={(v) => patch({ declined: v })} size="sm"
+            options={[{ value: "skip", label: "Skip" }, { value: "include", label: "Include" }]} />
+        </InspectorBlock>
+      </div>
+    </div>
+  );
+}
+
+function InspectorBlock({ title, children }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 8 }}>
+        {title}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>{children}</div>
+    </div>
+  );
+}
+
+function CanvasGraph({ srcs, dsts, draft, patch }) {
+  const wrapRef = useRefS(null);
+  const [size, setSize] = useStateS({ w: 800, h: 480 });
+  useEffectS(() => {
+    if (!wrapRef.current) return;
+    const ro = new ResizeObserver(([e]) => setSize({ w: e.contentRect.width, h: Math.max(e.contentRect.height, 400) }));
+    ro.observe(wrapRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  // layout: sources on left, hub in middle, dests on right
+  const leftX = 60;
+  const rightX = size.w - 280;
+  const hubX = (leftX + 240 + rightX) / 2;
+  const hubY = size.h / 2;
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative", width: "100%", minHeight: 480 }}>
+      {/* connector svg */}
+      <svg style={{ position: "absolute", inset: 0, pointerEvents: "none" }} width="100%" height={size.h}>
+        <defs>
+          <linearGradient id="conn" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#2ECC71" stopOpacity="0.2" />
+            <stop offset="0.5" stopColor="#2ECC71" stopOpacity="0.9" />
+            <stop offset="1" stopColor="#2ECC71" stopOpacity="0.2" />
+          </linearGradient>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2ECC71" />
+          </marker>
+        </defs>
+        {srcs.map((s, i) => {
+          const y = 60 + i * 70 + 30;
+          const startX = leftX + 240;
+          return (
+            <path key={s.id} d={`M ${startX} ${y} C ${startX + 60} ${y}, ${hubX - 60} ${hubY}, ${hubX} ${hubY}`}
+              stroke="url(#conn)" strokeWidth="1.5" fill="none" markerEnd={draft.direction === "two-way" ? "" : "url(#arr)"} />
+          );
+        })}
+        {dsts.map((d, i) => {
+          const y = 60 + i * 70 + 30;
+          const endX = rightX;
+          return (
+            <path key={d.id} d={`M ${hubX} ${hubY} C ${hubX + 60} ${hubY}, ${endX - 60} ${y}, ${endX} ${y}`}
+              stroke="url(#conn)" strokeWidth="1.5" fill="none" markerEnd="url(#arr)" />
+          );
+        })}
+      </svg>
+
+      {/* column labels */}
+      <div style={{ position: "absolute", left: leftX, top: 16, fontSize: 10.5, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--muted)" }}>
+        Sources
+      </div>
+      <div style={{ position: "absolute", left: rightX, top: 16, fontSize: 10.5, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--muted)" }}>
+        Destinations
+      </div>
+
+      {/* source nodes */}
+      {srcs.map((c, i) => (
+        <CalNode key={c.id} cal={c} x={leftX} y={60 + i * 70} onRemove={() => patch({ sources: draft.sources.filter(id => id !== c.id) })} />
+      ))}
+      <AddNode x={leftX} y={60 + srcs.length * 70} excludeIds={draft.destinations} existingIds={draft.sources}
+        onPick={(id) => patch({ sources: [...draft.sources, id] })} label="Add source" />
+
+      {/* hub */}
+      <HubNode x={hubX - 70} y={hubY - 38} draft={draft} />
+
+      {/* destination nodes */}
+      {dsts.map((c, i) => (
+        <CalNode key={c.id} cal={c} x={rightX} y={60 + i * 70} onRemove={() => patch({ destinations: draft.destinations.filter(id => id !== c.id) })} />
+      ))}
+      <AddNode x={rightX} y={60 + dsts.length * 70} excludeIds={draft.sources} existingIds={draft.destinations}
+        onPick={(id) => patch({ destinations: [...draft.destinations, id] })} label="Add destination" />
+    </div>
+  );
+}
+
+function CalNode({ cal, x, y, onRemove }) {
+  const Mark = cal.account.provider === "google" ? Provider.Google : Provider.Microsoft;
+  return (
+    <div style={{
+      position: "absolute", left: x, top: y,
+      width: 240, padding: "10px 12px",
+      background: "var(--panel)", border: "0.5px solid var(--border-hi)",
+      borderRadius: 10, boxShadow: "var(--shadow-pop)",
+      display: "flex", alignItems: "center", gap: 8,
+    }}>
+      <div style={{ width: 10, height: 10, borderRadius: 3, background: cal.color, flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cal.name}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
+          <Mark size={9} />
+          <span className="dim" style={{ fontSize: 10.5 }}>{cal.account.label}</span>
+        </div>
+      </div>
+      <button className="iconbtn" style={{ width: 22, height: 22 }} onClick={onRemove}><I.X size={11} /></button>
+    </div>
+  );
+}
+
+function AddNode({ x, y, onPick, excludeIds, existingIds, label }) {
+  const [open, setOpen] = useStateS(false);
+  const ref = useRefS(null);
+  useEffectS(() => {
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+  return (
+    <div ref={ref} style={{ position: "absolute", left: x, top: y, width: 240 }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: "100%", padding: "10px 12px",
+        background: "transparent", border: "1px dashed var(--border-hi)",
+        borderRadius: 10, fontSize: 12.5, color: "var(--dim)",
+        display: "flex", alignItems: "center", gap: 6, justifyContent: "center",
+        transition: "background 0.12s, color 0.12s, border-color 0.12s",
+      }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface)"; e.currentTarget.style.color = "var(--accent)"; e.currentTarget.style.borderColor = "var(--accent)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--dim)"; e.currentTarget.style.borderColor = "var(--border-hi)"; }}>
+        <I.Plus size={12} /> {label}
+      </button>
+      {open && <CalendarMenu exclude={[...existingIds, ...excludeIds]} onPick={(id) => { onPick(id); setOpen(false); }} />}
+    </div>
+  );
+}
+
+function HubNode({ x, y, draft }) {
+  const privacy = PRIVACY_PRESETS.find(p => p.id === draft.privacy);
+  return (
+    <div style={{
+      position: "absolute", left: x, top: y,
+      width: 140, padding: "12px",
+      background: "color-mix(in oklab, var(--accent) 14%, var(--panel))",
+      border: "1px solid var(--accent)",
+      borderRadius: 12,
+      boxShadow: "0 0 0 6px var(--accent-bg), var(--shadow-pop)",
+      textAlign: "center",
+    }}>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 4, color: "var(--accent)" }}>
+        {draft.direction === "two-way" ? <I.ArrowsLR size={18} /> : <I.Sync size={18} />}
+      </div>
+      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{privacy?.title}</div>
+      <div className="dim" style={{ fontSize: 10.5, marginTop: 2 }}>
+        {[draft.stripAttendees && "no attendees", draft.workingHoursOnly && "work hrs", draft.hideWeekends && "no weekends"].filter(Boolean).join(" · ") || "no filters"}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { SyncScreen });
+
+  </script>
+
+  <!-- screens-misc -->
+  <script type="text/babel" data-presets="react">
+// screens-misc.jsx — Dashboard, Team, Settings, Billing
+
+const { useState: useStateM, useMemo: useMemoM } = React;
+
+// ───────────────────────────────────────────────────────────────
+// Dashboard
+// ───────────────────────────────────────────────────────────────
+function DashboardScreen({ onNav }) {
+  const { state } = useStore();
+  const activeFlows = state.flows.filter(f => !f.paused);
+  const totalSynced = state.flows.reduce((s, f) => s + f.eventsSynced, 0);
+  const calCount = state.accounts.reduce((s, a) => s + a.calendars.length, 0);
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <PageHeader
+        title={`Hey, ${state.user.name.split(" ")[0]}.`}
+        actions={
+          <>
+            <button className="btn" onClick={() => onNav("calendars")}><I.Plus size={13} /> Connect calendar</button>
+            <button className="btn primary" onClick={() => onNav("sync", { newFlow: true })}><I.Plus size={13} /> New flow</button>
+          </>
+        }
+      />
+
+      <div style={{ flex: 1, overflow: "auto", padding: "32px 32px 40px" }}>
+        {/* metrics */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0,
+          marginBottom: 24,
+          border: "0.5px solid var(--border)", borderRadius: 12,
+          background: "var(--panel)", overflow: "hidden",
+        }}>
+          <MetricCell label="Active flows" value={activeFlows.length} hint={`${state.flows.length} total`} />
+          <MetricCell label="Calendars" value={calCount} hint={`${state.accounts.length} accounts`} />
+          <MetricCell label="Events synced" value={totalSynced.toLocaleString()} hint="last 30 days" />
+          <MetricCell label="Status" value={<span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><span className="pulse" /><span style={{ fontSize: 14, fontWeight: 500, color: "var(--text)" }}>All normal</span></span>} hint="last check 12s ago" raw />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14 }}>
+          {/* flows preview — primary */}
+          <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+            <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, borderBottom: "0.5px solid var(--divider)" }}>
+              <div style={{ fontSize: 13.5, fontWeight: 500 }}>Sync flows</div>
+              <span className="dim" style={{ fontSize: 12 }}>· {activeFlows.length} running</span>
+              <div style={{ flex: 1 }} />
+              <button className="btn ghost sm" onClick={() => onNav("sync")}>Manage <I.ArrowRight size={11} /></button>
+            </div>
+            <div>
+              {state.flows.slice(0, 5).map((f, i) => <MiniFlowRow key={f.id} flow={f} divider={i > 0} onClick={() => onNav("sync", { flowId: f.id })} />)}
+            </div>
+          </div>
+
+          {/* activity — secondary, neutral */}
+          <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+            <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, borderBottom: "0.5px solid var(--divider)" }}>
+              <div style={{ fontSize: 13.5, fontWeight: 500 }}>Recent activity</div>
+              <div style={{ flex: 1 }} />
+              <button className="btn ghost sm">View all</button>
+            </div>
+            <div style={{ maxHeight: 440, overflow: "auto" }}>
+              {state.activity.slice(0, 10).map(a => <ActivityRow key={a.id} item={a} />)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetricCell({ label, value, hint, raw }) {
+  return (
+    <div style={{
+      padding: "16px 20px",
+      borderRight: "0.5px solid var(--divider)",
+      display: "flex", flexDirection: "column", gap: 6,
+    }}>
+      <div style={{ fontSize: 11.5, color: "var(--dim)", fontWeight: 450, letterSpacing: "0.01em" }}>{label}</div>
+      {raw ? value : (
+        <div style={{ fontSize: 24, fontWeight: 500, letterSpacing: "-0.025em", color: "var(--text)", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+      )}
+      {hint && <div style={{ fontSize: 11, color: "var(--muted)" }}>{hint}</div>}
+    </div>
+  );
+}
+
+function InlineStat({ label, value, hint }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
+        <span style={{ fontSize: 22, fontWeight: 500, letterSpacing: "-0.02em", color: "var(--text)", lineHeight: 1 }}>{value}</span>
+        <span style={{ fontSize: 12, color: "var(--text-2)" }}>{label}</span>
+      </div>
+      {hint && <div className="dim" style={{ fontSize: 10.5 }}>{hint}</div>}
+    </div>
+  );
+}
+
+function Divider() {
+  return <div style={{ width: 0.5, alignSelf: "stretch", background: "var(--divider)" }} />;
+}
+
+function StatCard({ label, value, sub, icon, accent }) {
+  return (
+    <div className="card" style={{ padding: "14px 16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ color: accent ? "var(--accent)" : "var(--dim)" }}>{icon}</div>
+        <span style={{ fontSize: 11.5, color: "var(--dim)", fontWeight: 450 }}>{label}</span>
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1, color: accent ? "var(--accent)" : "var(--text)" }}>
+        {value}
+      </div>
+      <div className="dim" style={{ fontSize: 11.5, marginTop: 6 }}>{sub}</div>
+    </div>
+  );
+}
+
+function DayPreview() {
+  const events = [
+    { t: "9:00", end: "9:30", cal: "Work", color: "#4f78e8", title: "Team standup", attendees: 7 },
+    { t: "10:00", end: "11:00", cal: "Personal", color: "#a45fc6", title: "Busy", mirror: true },
+    { t: "11:30", end: "12:30", cal: "Work", color: "#dc6c9b", title: "Northwind — Q4 review", attendees: 3 },
+    { t: "1:00", end: "2:00", cal: "Personal", color: "#f08a3c", title: "Lunch with Sara" },
+    { t: "2:30", end: "3:30", cal: "Consulting", color: "#e25c5c", title: "Client kickoff" },
+    { t: "4:00", end: "4:30", cal: "Personal", color: "#3da5b0", title: "Yoga" },
+  ];
+  return (
+    <div style={{ padding: "10px 4px 16px 0", display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "60px 1fr", gap: 0 }}>
+        {events.map((e, i) => (
+          <React.Fragment key={i}>
+            <div style={{ padding: "10px 16px 6px", textAlign: "right" }}>
+              <div className="mono dim" style={{ fontSize: 11 }}>{e.t}</div>
+            </div>
+            <div style={{ padding: "6px 18px 6px 0", borderTop: i === 0 ? "none" : "0.5px solid var(--divider)" }}>
+              <div style={{
+                padding: "9px 11px", borderRadius: 7,
+                background: "color-mix(in oklab, " + e.color + " 13%, transparent)",
+                borderLeft: `2.5px solid ${e.color}`,
+                display: "flex", alignItems: "center", gap: 9,
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 500, color: e.title === "Busy" ? "var(--dim)" : "var(--text)" }}>{e.title}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
+                    <span className="dim" style={{ fontSize: 11 }}>{e.cal} · {e.t}–{e.end}</span>
+                    {e.mirror && (
+                      <span style={{ fontSize: 9.5, color: "var(--accent)", fontWeight: 500, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                        ← mirrored
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {e.attendees && (
+                  <div style={{ display: "flex", marginLeft: "auto" }}>
+                    {Array.from({ length: Math.min(e.attendees, 3) }, (_, j) => (
+                      <Avatar key={j} name={["Priya", "Marco", "Sara", "Jun", "Kira"][j]} size={20} />
+                    )).map((a, j) => React.cloneElement(a, { style: { marginLeft: j === 0 ? 0 : -6, border: "1.5px solid var(--panel)" } }))}
+                    {e.attendees > 3 && <span style={{
+                      width: 20, height: 20, borderRadius: "50%", marginLeft: -6,
+                      background: "var(--surface-hi)", border: "1.5px solid var(--panel)",
+                      fontSize: 9.5, fontWeight: 500, color: "var(--dim)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>+{e.attendees - 3}</span>}
+                  </div>
+                )}
+              </div>
+            </div>
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ActivityRow({ item }) {
+  const iconMap = {
+    sync: <I.Sync size={12} />,
+    flow: <I.Plus size={12} />,
+    privacy: <I.Lock size={12} />,
+    conflict: <I.Warning size={12} />,
+    pause: <I.Pause size={12} />,
+    team: <I.Team size={12} />,
+    connect: <I.Link size={12} />,
+  };
+  const colorMap = {
+    sync: "var(--dim)", flow: "var(--accent)", privacy: "var(--dim)",
+    conflict: "var(--warn)", pause: "var(--dim)", team: "var(--dim)", connect: "var(--dim)",
+  };
+  return (
+    <div style={{
+      padding: "10px 18px",
+      display: "flex", alignItems: "flex-start", gap: 10,
+      borderTop: "0.5px solid var(--divider)",
+    }}>
+      <div style={{
+        width: 22, height: 22, borderRadius: 6,
+        background: "var(--surface)",
+        color: colorMap[item.kind] || "var(--dim)",
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        marginTop: 1,
+      }}>{iconMap[item.kind] || <I.Activity size={12} />}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, lineHeight: 1.5 }}>{item.text}</div>
+        <div className="dim" style={{ fontSize: 11, marginTop: 2 }}>{item.t}</div>
+      </div>
+    </div>
+  );
+}
+
+function MiniFlowRow({ flow, divider, onClick }) {
+  const { state } = useStore();
+  const srcs = flow.sources.map(id => findCalendar(state.accounts, id)).filter(Boolean).slice(0, 2);
+  const dsts = flow.destinations.map(id => findCalendar(state.accounts, id)).filter(Boolean).slice(0, 2);
+  return (
+    <button onClick={onClick} style={{
+      width: "100%", padding: "9px 18px",
+      display: "flex", alignItems: "center", gap: 12, textAlign: "left",
+      borderTop: divider ? "0.5px solid var(--divider)" : "none",
+      transition: "background 0.12s",
+    }}
+      onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface)"}
+      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)" }}>{flow.name}</div>
+        <div className="dim" style={{ fontSize: 10.5, marginTop: 2, display: "flex", alignItems: "center", gap: 5 }}>
+          <span className="tabnum">{flow.eventsSynced}</span> events
+          <span style={{ color: "var(--muted)" }}>·</span>
+          <span>last run {flow.lastRun || "2m ago"}</span>
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10.5 }}>
+        {flow.paused ? (
+          <span className="dim">Paused</span>
+        ) : (
+          <>
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--ok)" }} />
+            <span style={{ color: "var(--text-2)" }}>Running</span>
+          </>
+        )}
+      </div>
+      <I.Chevron size={13} style={{ color: "var(--dim)" }} />
+    </button>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────
+// Team
+// ───────────────────────────────────────────────────────────────
+function TeamScreen() {
+  const { state, addTeammate, updateTeammate, removeTeammate, pushActivity } = useStore();
+  const toast = useToast();
+  const [inviteOpen, setInviteOpen] = useStateM(false);
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <PageHeader
+        title="Team"
+        subtitle={`${state.team.length} member${state.team.length === 1 ? "" : "s"} · everyone connects their own calendars. You manage who's in.`}
+        actions={<button className="btn primary" onClick={() => setInviteOpen(true)}><I.Plus size={13} /> Invite</button>}
+      />
+
+      <div style={{ flex: 1, overflow: "auto", padding: "32px 32px 40px" }}>
+        <div className="card" style={{ overflow: "hidden" }}>
+          <div style={{
+            display: "grid", gridTemplateColumns: "1.5fr 1fr 120px 90px 40px", gap: 14,
+            padding: "10px 18px", borderBottom: "0.5px solid var(--divider)",
+            fontSize: 10.5, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)",
+          }}>
+            <span>Member</span><span>Email</span><span>Role</span><span>Calendars</span><span></span>
+          </div>
+          {state.team.map((u, i) => (
+            <TeamRow key={u.id} u={u}
+              calendars={state.accounts.filter(a => u.you ? true : Math.random() > 0.3).length}
+              onRoleChange={(role) => { updateTeammate(u.id, { role }); toast(`${u.name} is now ${role}`, "info"); }}
+              onRemove={() => { if (confirm(`Remove ${u.name} from the workspace?`)) { removeTeammate(u.id); pushActivity(`Removed ${u.name}`, "team"); toast(`${u.name} removed`, "info"); } }}
+              divider={i > 0}
+            />
+          ))}
+        </div>
+
+        {/* invite hint */}
+        <div className="card" style={{ marginTop: 14, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: "var(--accent-bg)", color: "var(--accent)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}><I.Link size={16} /></div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 500 }}>Magic invite link</div>
+            <div className="dim" style={{ fontSize: 12, marginTop: 2 }}>Anyone with this link and a <strong style={{ color: "var(--text-2)" }}>@levitatedata.com</strong> email can join.</div>
+          </div>
+          <input className="input" style={{ width: 320, fontFamily: "var(--font-mono)", fontSize: 12 }} readOnly value="https://einkal.com/join/lvtd-7a3kqz" />
+          <button className="btn" onClick={() => toast("Copied to clipboard", "ok")}><I.Copy size={12} /> Copy</button>
+        </div>
+      </div>
+
+      <InviteModal open={inviteOpen} onClose={() => setInviteOpen(false)} onInvite={(rows) => {
+        rows.filter(r => r.email).forEach(r => addTeammate({ name: r.email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, l => l.toUpperCase()), email: r.email, role: r.role, invited: true }));
+        pushActivity(`Invited ${rows.filter(r => r.email).length} teammate(s)`, "team");
+        toast("Invites sent", "ok");
+        setInviteOpen(false);
+      }} />
+    </div>
+  );
+}
+
+function TeamRow({ u, calendars, onRoleChange, onRemove, divider }) {
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "1.5fr 1fr 120px 90px 40px", gap: 14,
+      padding: "12px 18px", alignItems: "center",
+      borderTop: divider ? "0.5px solid var(--divider)" : "none",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Avatar name={u.name} size={28} color={u.avatarColor} />
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 500 }}>{u.name} {u.you && <span className="dim" style={{ fontWeight: 400 }}>(you)</span>}</div>
+          {u.invited && <div style={{ fontSize: 10.5, color: "var(--warn)", marginTop: 1 }}>Invite pending</div>}
+        </div>
+      </div>
+      <span className="dim mono" style={{ fontSize: 11.5 }}>{u.email}</span>
+      <select className="input select" disabled={u.you} style={{ height: 26, fontSize: 12 }}
+        value={u.role} onChange={(e) => onRoleChange(e.target.value)}>
+        <option value="owner">Owner</option>
+        <option value="admin">Admin</option>
+        <option value="member">Member</option>
+        <option value="billing">Billing only</option>
+      </select>
+      <span style={{ fontSize: 12, color: "var(--text-2)" }}>{calendars}</span>
+      {!u.you && <button className="iconbtn" onClick={onRemove}><I.More size={14} /></button>}
+    </div>
+  );
+}
+
+function InviteModal({ open, onClose, onInvite }) {
+  const [rows, setRows] = useStateM([{ email: "", role: "member" }, { email: "", role: "member" }]);
+  React.useEffect(() => { if (open) setRows([{ email: "", role: "member" }, { email: "", role: "member" }]); }, [open]);
+
+  return (
+    <Modal open={open} onClose={onClose} title="Invite teammates" width={520}
+      footer={<>
+        <button className="btn" onClick={onClose}>Cancel</button>
+        <button className="btn primary" onClick={() => onInvite(rows)}><I.Mail size={12} /> Send invites</button>
+      </>}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {rows.map((r, i) => (
+          <div key={i} style={{ display: "flex", gap: 6 }}>
+            <input className="input" style={{ flex: 1 }} placeholder="teammate@company.com" value={r.email}
+              onChange={(e) => setRows(rs => rs.map((x, j) => j === i ? { ...x, email: e.target.value } : x))} />
+            <select className="input select" style={{ width: 130 }} value={r.role}
+              onChange={(e) => setRows(rs => rs.map((x, j) => j === i ? { ...x, role: e.target.value } : x))}>
+              <option value="admin">Admin</option>
+              <option value="member">Member</option>
+              <option value="billing">Billing only</option>
+            </select>
+            <button className="iconbtn" style={{ width: 32, height: 32 }} onClick={() => setRows(rs => rs.filter((_, j) => j !== i))}><I.X size={13} /></button>
+          </div>
+        ))}
+        <button className="btn ghost sm" style={{ alignSelf: "flex-start" }} onClick={() => setRows(rs => [...rs, { email: "", role: "member" }])}>
+          <I.Plus size={12} /> Add another
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────
+// Settings
+// ───────────────────────────────────────────────────────────────
+function SettingsScreen() {
+  const { state, updateOrg } = useStore();
+  const toast = useToast();
+  const [tab, setTab] = useStateM("workspace");
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <PageHeader title="Settings" subtitle="Workspace settings, notifications, and security." />
+
+      <div style={{ flex: 1, overflow: "auto", padding: "32px 32px 40px" }}>
+        <div style={{ maxWidth: 720 }}>
+          <Tabs value={tab} onChange={setTab} options={[
+            { value: "workspace", label: "Workspace" },
+            { value: "notifications", label: "Notifications" },
+            { value: "security", label: "Security" },
+            { value: "danger", label: "Danger zone" },
+          ]} />
+
+          {tab === "workspace" && (
+            <SettingsCard title="Workspace details">
+              <Field label="Workspace name">
+                <input className="input" value={state.org.name} onChange={(e) => updateOrg({ name: e.target.value })} />
+              </Field>
+              <Field label="URL slug" help="Used in invite links and the workspace URL.">
+                <div style={{ position: "relative" }}>
+                  <input className="input" value={state.org.slug} onChange={(e) => updateOrg({ slug: e.target.value })} style={{ paddingLeft: 84 }} />
+                  <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "var(--dim)", fontSize: 13, fontFamily: "var(--font-mono)" }}>einkal.com/</span>
+                </div>
+              </Field>
+              <Field label="Default timezone">
+                <select className="input select" value={state.org.timezone} onChange={(e) => updateOrg({ timezone: e.target.value })}>
+                  <option>America/Los_Angeles</option>
+                  <option>America/New_York</option>
+                  <option>Europe/London</option>
+                  <option>Asia/Singapore</option>
+                  <option>Asia/Kolkata</option>
+                </select>
+              </Field>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                <button className="btn primary" onClick={() => toast("Saved", "ok")}>Save changes</button>
+              </div>
+            </SettingsCard>
+          )}
+
+          {tab === "notifications" && (
+            <SettingsCard title="What we email you about">
+              <NotifRow label="Sync conflicts" desc="When EinKal can't resolve a conflict automatically." defaultOn />
+              <NotifRow label="Failed syncs" desc="A provider rejected a write, or we lost permissions." defaultOn />
+              <NotifRow label="New teammate joins" desc="Someone accepts an invite." />
+              <NotifRow label="Weekly digest" desc="Friday summary: events synced, flows, anomalies." defaultOn />
+              <NotifRow label="Product updates" desc="New features, occasional announcements." />
+            </SettingsCard>
+          )}
+
+          {tab === "security" && (
+            <SettingsCard title="Security">
+              <Field label="Require SSO" help="Force all members to sign in via your identity provider.">
+                <Segmented value="off" onChange={() => { }} options={["Off", "Recommended", "Required"]} />
+              </Field>
+              <Field label="Session length" help="How long teammates stay signed in before re-authenticating.">
+                <select className="input select"><option>7 days</option><option>30 days</option><option>90 days</option></select>
+              </Field>
+              <NotifRow label="Two-factor authentication" desc="Require 2FA for all admins and owners." defaultOn />
+              <NotifRow label="Audit log" desc="Track every sync, connection, and admin action." defaultOn />
+            </SettingsCard>
+          )}
+
+          {tab === "danger" && (
+            <SettingsCard title="Danger zone" danger>
+              <div style={{ padding: "12px 0", display: "flex", alignItems: "center", gap: 14, borderBottom: "0.5px solid var(--divider)" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 500 }}>Pause all syncs</div>
+                  <div className="dim" style={{ fontSize: 12 }}>Stop every flow in this workspace. You can resume any time.</div>
+                </div>
+                <button className="btn" onClick={() => toast("All syncs paused", "warn")}><I.Pause size={12} /> Pause all</button>
+              </div>
+              <div style={{ padding: "12px 0", display: "flex", alignItems: "center", gap: 14, borderBottom: "0.5px solid var(--divider)" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 500 }}>Disconnect all calendars</div>
+                  <div className="dim" style={{ fontSize: 12 }}>Remove every connected account. Mirror events stay where they are.</div>
+                </div>
+                <button className="btn danger">Disconnect</button>
+              </div>
+              <div style={{ padding: "12px 0", display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--danger)" }}>Delete workspace</div>
+                  <div className="dim" style={{ fontSize: 12 }}>Permanent. All flows, connections, and history are erased.</div>
+                </div>
+                <button className="btn danger">Delete workspace</button>
+              </div>
+            </SettingsCard>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsCard({ title, children, danger }) {
+  return (
+    <div className="card" style={{ padding: "18px 22px", borderColor: danger ? "color-mix(in oklab, var(--danger) 30%, var(--border))" : undefined }}>
+      <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 14, color: danger ? "var(--danger)" : "var(--text)" }}>{title}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>{children}</div>
+    </div>
+  );
+}
+
+function Field({ label, help, children }) {
+  return (
+    <div>
+      <label className="label">{label}</label>
+      {children}
+      {help && <div className="help">{help}</div>}
+    </div>
+  );
+}
+
+function NotifRow({ label, desc, defaultOn }) {
+  const [on, setOn] = useStateM(!!defaultOn);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 0", borderBottom: "0.5px solid var(--divider)" }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 450 }}>{label}</div>
+        <div className="dim" style={{ fontSize: 12, marginTop: 1 }}>{desc}</div>
+      </div>
+      <button className={"toggle " + (on ? "on" : "")} onClick={() => setOn(o => !o)} />
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────
+// Billing
+// ───────────────────────────────────────────────────────────────
+function BillingScreen() {
+  const { state } = useStore();
+  const invoices = [
+    { id: "INV-2026-011", date: "Nov 1, 2026", amount: "$60.00", status: "paid" },
+    { id: "INV-2026-010", date: "Oct 1, 2026", amount: "$60.00", status: "paid" },
+    { id: "INV-2026-009", date: "Sep 1, 2026", amount: "$48.00", status: "paid" },
+    { id: "INV-2026-008", date: "Aug 1, 2026", amount: "$36.00", status: "paid" },
+  ];
+
+  return (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <PageHeader title="Billing" subtitle="Plan, seats, payment, and invoices." />
+
+      <div style={{ flex: 1, overflow: "auto", padding: "32px 32px 40px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 14, marginBottom: 14 }}>
+          {/* current plan */}
+          <div className="card" style={{ padding: "20px 22px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+              <span className="chip" style={{ color: "var(--accent)", borderColor: "color-mix(in oklab, var(--accent) 40%, var(--border))", background: "var(--accent-bg)" }}>
+                <I.Sparkles size={10} /> {state.org.plan} plan
+              </span>
+              <span className="dim" style={{ fontSize: 12 }}>renews Dec 1, 2026</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+              <BillingStat label="Seats" value={`${state.org.seatsUsed} / ${state.org.seats}`} sub="$12 / seat / mo" />
+              <BillingStat label="Active flows" value={state.flows.filter(f => !f.paused).length} sub="unlimited included" />
+              <BillingStat label="This month" value="$60" sub="next invoice" />
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
+              <button className="btn primary">Upgrade to Scale</button>
+              <button className="btn">Add seats</button>
+              <button className="btn">Manage plan</button>
+            </div>
+          </div>
+
+          {/* payment */}
+          <div className="card" style={{ padding: "20px 22px" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>
+              Payment method
+            </div>
+            <div style={{
+              padding: "14px 16px", borderRadius: 10,
+              background: "linear-gradient(135deg, #1a1a1a, #2a2520)",
+              border: "0.5px solid var(--border-hi)", color: "#e8e6e0",
+              fontFamily: "var(--font-mono)", position: "relative", overflow: "hidden",
+            }}>
+              <div style={{ position: "absolute", right: -20, top: -20, width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle, color-mix(in oklab, var(--accent) 30%, transparent), transparent)" }} />
+              <div style={{ fontSize: 11, color: "#8a8580" }}>VISA · ending 4242</div>
+              <div style={{ marginTop: 12, fontSize: 14, letterSpacing: "0.18em" }}>•••• •••• •••• 4242</div>
+              <div style={{ marginTop: 8, fontSize: 10, color: "#8a8580" }}>EXPIRES 09/29</div>
+            </div>
+            <button className="btn sm" style={{ marginTop: 12 }}>Update card</button>
+          </div>
+        </div>
+
+        {/* invoices */}
+        <div className="card" style={{ overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", borderBottom: "0.5px solid var(--divider)" }}>
+            <div style={{ fontSize: 13.5, fontWeight: 500 }}>Invoices</div>
+            <div style={{ flex: 1 }} />
+            <button className="btn ghost sm"><I.ExtLink size={11} /> Tax & receipts</button>
+          </div>
+          <div style={{
+            display: "grid", gridTemplateColumns: "1fr 1fr 100px 80px 60px", gap: 14,
+            padding: "10px 18px", borderBottom: "0.5px solid var(--divider)",
+            fontSize: 10.5, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)",
+          }}>
+            <span>Invoice</span><span>Date</span><span>Amount</span><span>Status</span><span></span>
+          </div>
+          {invoices.map((inv, i) => (
+            <div key={inv.id} style={{
+              display: "grid", gridTemplateColumns: "1fr 1fr 100px 80px 60px", gap: 14,
+              padding: "11px 18px", alignItems: "center",
+              borderTop: i === 0 ? "none" : "0.5px solid var(--divider)",
+              fontSize: 13,
+            }}>
+              <span className="mono" style={{ fontSize: 12 }}>{inv.id}</span>
+              <span className="dim">{inv.date}</span>
+              <span className="mono">{inv.amount}</span>
+              <span style={{ color: "var(--ok)", fontSize: 11.5 }}>● {inv.status}</span>
+              <button className="btn ghost sm"><I.ExtLink size={11} /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BillingStat({ label, value, sub }) {
+  return (
+    <div>
+      <div className="dim" style={{ fontSize: 11, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 500, letterSpacing: "-0.01em" }}>{value}</div>
+      <div className="dim" style={{ fontSize: 11, marginTop: 4 }}>{sub}</div>
+    </div>
+  );
+}
+
+Object.assign(window, { DashboardScreen, TeamScreen, SettingsScreen, BillingScreen });
+
+  </script>
+
+  <!-- app -->
+  <script type="text/babel" data-presets="react">
+// app.jsx — entry point, routing, theme, tweaks
+
+const { useState: useStateApp, useEffect: useEffectApp, useMemo: useMemoApp } = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "dark",
+  "builderLayout": "linear"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [authStage, setAuthStage] = useStateApp("app"); // 'signin' | 'onboarding' | 'app'
+  const [route, setRoute] = useStateApp("dashboard");
+  const [openFlow, setOpenFlow] = useStateApp(null); // null | 'new' | flowId
+
+  // apply theme
+  useEffectApp(() => {
+    document.documentElement.dataset.theme = t.theme;
+  }, [t.theme]);
+
+  // keyboard shortcuts
+  useEffectApp(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "n" && authStage === "app") {
+        e.preventDefault();
+        setRoute("sync");
+        setOpenFlow("new");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [authStage]);
+
+  // route handler — supports payload (e.g. flowId, newFlow)
+  const handleNav = (id, payload) => {
+    setRoute(id);
+    if (id === "sync") {
+      if (payload?.newFlow) setOpenFlow("new");
+      else if (payload?.flowId) setOpenFlow(payload.flowId);
+      else setOpenFlow(null);
+    } else {
+      setOpenFlow(null);
+    }
+  };
+
+  // Auth flow
+  if (authStage === "signin") {
+    return (
+      <SignIn
+        onContinue={(d) => setAuthStage(d.isNew ? "onboarding" : "app")}
+        onSkip={() => setAuthStage("app")}
+      />
+    );
+  }
+  if (authStage === "onboarding") {
+    return <Onboarding onDone={() => setAuthStage("app")} />;
+  }
+
+  // App shell
+  return (
+    <div className="app">
+      <Sidebar route={route} onNav={handleNav} />
+      <main style={{ minWidth: 0, height: "100vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div className="fade-in" key={route + "-" + (openFlow || "")} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          {route === "dashboard" && <DashboardScreen onNav={handleNav} />}
+          {route === "calendars" && <CalendarsScreen />}
+          {route === "sync" && <SyncScreen openFlow={openFlow} setOpenFlow={setOpenFlow} builderLayout={t.builderLayout} />}
+          {route === "team" && <TeamScreen />}
+          {route === "settings" && <SettingsScreen />}
+          {route === "billing" && <BillingScreen />}
+        </div>
+      </main>
+
+      <TweaksPanel>
+        <TweakSection label="Appearance" />
+        <TweakRadio label="Theme" value={t.theme}
+          options={[{ value: "dark", label: "Dark" }, { value: "light", label: "Light" }]}
+          onChange={(v) => setTweak("theme", v)} />
+
+        <TweakSection label="Sync flow builder" />
+        <TweakRadio label="Layout" value={t.builderLayout}
+          options={[{ value: "linear", label: "Linear" }, { value: "canvas", label: "Canvas" }]}
+          onChange={(v) => setTweak("builderLayout", v)} />
+        <div style={{ fontSize: 11, color: "rgba(41,38,27,.5)", lineHeight: 1.4, padding: "0 2px" }}>
+          Linear = stepped form. Canvas = node graph. Both edit the same flow.
+        </div>
+
+        <TweakSection label="Flow" />
+        <TweakButton label="Restart auth flow" onClick={() => setAuthStage("signin")}>
+          Sign-in screen
+        </TweakButton>
+        <TweakButton label="" onClick={() => setAuthStage("onboarding")}>
+          Onboarding
+        </TweakButton>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+function Root() {
+  return (
+    <StoreProvider>
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    </StoreProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Root />);
+
+  </script>
+
+</body>
+</html>
