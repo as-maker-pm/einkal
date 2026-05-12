@@ -144,17 +144,32 @@ function FlowCard({ flow, onOpen, onTogglePause, onDelete }) {
 
       {/* From → To */}
       <div style={{
-        padding: "16px 18px",
-        display: "grid", gridTemplateColumns: "1fr 56px 1fr", gap: 14, alignItems: "center",
+        padding: "10px 18px 14px",
+        display: "grid", gridTemplateColumns: "1fr 24px 1fr", gap: 6, alignItems: "center",
       }}>
-        <FlowSide label="From" cals={srcs} />
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: "var(--text-2)" }}>
-          {flow.direction === "two-way" ? <I.ArrowsLR size={16} /> : <I.ArrowRight size={16} />}
-          <span className="dim" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-            {flow.direction === "two-way" ? "Two-way" : "One-way"}
-          </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div className="dim" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 2 }}>From</div>
+          {srcs.slice(0, 3).map(c => (
+            <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 12.5, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</span>
+            </span>
+          ))}
+          {srcs.length > 3 && <span className="dim" style={{ fontSize: 11 }}>+{srcs.length - 3} more</span>}
         </div>
-        <FlowSide label="To" cals={dsts} />
+        <div style={{ display: "flex", justifyContent: "center", color: "var(--dim)" }}>
+          {flow.direction === "two-way" ? <I.ArrowsLR size={18} /> : <I.ArrowRight size={18} />}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div className="dim" style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 2 }}>To</div>
+          {dsts.slice(0, 3).map(c => (
+            <span key={c.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 12.5, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</span>
+            </span>
+          ))}
+          {dsts.length > 3 && <span className="dim" style={{ fontSize: 11 }}>+{dsts.length - 3} more</span>}
+        </div>
       </div>
 
       {/* Plain-language footer */}
