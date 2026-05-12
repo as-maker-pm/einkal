@@ -222,13 +222,13 @@ function MiniFlowRow({ flow, divider, onClick }) {
       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)", flex: 1, minWidth: 0 }}>{flow.name}</div>
           {flow.paused
-            ? <span className="dim" style={{ fontSize: 10.5 }}>Paused</span>
-            : <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10.5, color: "var(--text-2)" }}>
+            ? <span className="dim" style={{ fontSize: 10.5, flexShrink: 0 }}>Paused</span>
+            : <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10.5, color: "var(--text-2)", flexShrink: 0 }}>
                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--ok)", flexShrink: 0 }} />
                 Running
               </span>}
-          <div style={{ fontSize: 12.5, fontWeight: 450, color: "var(--text)" }}>{flow.name}</div>
         </div>
         <div className="dim" style={{ fontSize: 10.5, marginTop: 3, display: "flex", alignItems: "center", gap: 5 }}>
           <span className="tabnum">{flow.eventsSynced}</span> events
