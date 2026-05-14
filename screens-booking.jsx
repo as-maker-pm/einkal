@@ -17,9 +17,9 @@ const ROUTING_OPTIONS = [
 ];
 
 const SEED_BOOKINGS = [
-  { id:"bk1", name:"30-min intro call",  slug:"intro-30",        type:"personal", duration:30, color:"#5ba6f0", active:true,  desc:"Quick intro to see if we're a good fit.",                location:"meet", days:[1,2,3,4,5], startH:9,  endH:17, buffer:15, members:[], routing:"round-robin" },
-  { id:"bk2", name:"Team interview",     slug:"team-interview",  type:"team",     duration:60, color:"#a78bfa", active:true,  desc:"Engineering interview. Come prepared with examples.",    location:"zoom", days:[1,2,3,4,5], startH:10, endH:16, buffer:0,  members:["tm1","tm5"], routing:"round-robin" },
-  { id:"bk3", name:"Sprint planning",    slug:"sprint-planning", type:"team",     duration:45, color:"#34d399", active:false, desc:"Bi-weekly sprint planning for the core team.",            location:"meet", days:[1,3],       startH:14, endH:17, buffer:0,  members:["tm1","tm2","tm3"], routing:"collective" },
+  { id:"bk1", name:"30-min intro call",  slug:"intro-30",        type:"personal", duration:30, color:"#5ba6f0", active:true,  desc:"Quick intro to see if we're a good fit.",                location:"meet", days:[1,2,3,4,5], startH:9,  endH:17, buffer:15, members:[], routing:"round-robin", calId:"cal-1" },
+  { id:"bk2", name:"Team interview",     slug:"team-interview",  type:"team",     duration:60, color:"#a78bfa", active:true,  desc:"Engineering interview. Come prepared with examples.",    location:"zoom", days:[1,2,3,4,5], startH:10, endH:16, buffer:0,  members:["tm1","tm5"], routing:"round-robin", calId:"cal-3" },
+  { id:"bk3", name:"Sprint planning",    slug:"sprint-planning", type:"team",     duration:45, color:"#34d399", active:false, desc:"Bi-weekly sprint planning for the core team.",            location:"meet", days:[1,3],       startH:14, endH:17, buffer:0,  members:["tm1","tm2","tm3"], routing:"collective", calId:"cal-2" },
 ];
 
 const LOCATION_OPTIONS = [
@@ -123,10 +123,20 @@ function StatCell({ label, value, hint }) {
 }
 
 function BookingCard({ booking: b, onToggle, onEdit, onDelete }) {
+  const { state } = useStore();
   const [menuOpen, setMenuOpen] = useStateB(false);
   const loc = LOCATION_OPTIONS.find(l => l.id === b.location);
   const activeDays = b.days.map(d => DOW_LABELS[d]).join(", ");
   const slug = `einkal.cc/u/${b.slug}`;
+
+  const cal = useMemoB(() => {
+    if (!b.calId) return null;
+    for (const acc of state.accounts) {
+      const c = acc.calendars.find(c => c.id === b.calId);
+      if (c) return c;
+    }
+    return null;
+  }, [state.accounts, b.calId]);
 
   return (
     <div className="card" style={{ padding:0, overflow:"hidden", opacity: b.active ? 1 : 0.6 }}>
@@ -187,6 +197,12 @@ function BookingCard({ booking: b, onToggle, onEdit, onDelete }) {
 
         {/* Meta */}
         <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:12 }}>
+          {cal && (
+            <span style={{ display:"flex", alignItems:"center", gap:5, padding:"3px 8px", background:"var(--surface)", borderRadius:999, fontSize:11, color:"var(--dim)" }}>
+              <span style={{ width:7, height:7, borderRadius:"50%", background:cal.color, flexShrink:0 }} />
+              {cal.name}
+            </span>
+          )}
           <MetaChip icon={<I.Clock size={11} />} label={`${b.duration} min`} />
           <MetaChip icon={<I.Globe size={11} />} label={loc?.label || b.location} />
           <MetaChip icon={<I.Calendar size={11} />} label={activeDays} />
@@ -228,28 +244,63 @@ function MenuItemB({ label, icon, onClick, danger }) {
 // Create / Edit booking link modal
 // ─────────────────────────────────────────────────────────────────
 function CreateBookingModal({ initial, onClose, onSave }) {
-  const [name,     setName]     = useStateB(initial?.name     || "");
-  const [slug,     setSlug]     = useStateB(initial?.slug     || "");
-  const [type,     setType]     = useStateB(initial?.type     || "personal");
-  const [duration, setDuration] = useStateB(initial?.duration || 30);
-  const [color,    setColor]    = useStateB(initial?.color    || BOOKING_COLORS[0]);
-  const [desc,     setDesc]     = useStateB(initial?.desc     || "");
-  const [location, setLocation] = useStateB(initial?.location || "meet");
-  const [days,     setDays]     = useStateB(initial?.days     || [1,2,3,4,5]);
-  const [startH,   setStartH]   = useStateB(initial?.startH   || 9);
-  const [endH,     setEndH]     = useStateB(initial?.endH     || 17);
-  const [buffer,   setBuffer]   = useStateB(initial?.buffer   || 0);
-  const [members,  setMembers]  = useStateB(initial?.members  || []);
-  const [routing,  setRouting]  = useStateB(initial?.routing  || "round-robin");
-  const [step,     setStep]     = useStateB(0);
+  const { state } = useStore();
+
+  // Compute writable calendars before other state so we can use them as defaults
+  const writableCalendars = useMemoB(() => {
+    const cals = [];
+    state.accounts.forEach(acc => {
+      acc.calendars.filter(c => c.role !== "reader").forEach(cal => {
+        cals.push({ ...cal, accountLabel: acc.label, accountEmail: acc.email });
+      });
+    });
+    return cals;
+  }, [state.accounts]);
+
+  const [name,         setName]         = useStateB(initial?.name         || "");
+  const [slug,         setSlug]         = useStateB(initial?.slug         || "");
+  const [type,         setType]         = useStateB(initial?.type         || "personal");
+  const [duration,     setDuration]     = useStateB(initial?.duration     || 30);
+  const [color,        setColor]        = useStateB(initial?.color        || BOOKING_COLORS[0]);
+  const [desc,         setDesc]         = useStateB(initial?.desc         || "");
+  const [location,     setLocation]     = useStateB(initial?.location     || "meet");
+  const [days,         setDays]         = useStateB(initial?.days         || [1,2,3,4,5]);
+  const [startH,       setStartH]       = useStateB(initial?.startH       || 9);
+  const [endH,         setEndH]         = useStateB(initial?.endH         || 17);
+  const [buffer,       setBuffer]       = useStateB(initial?.buffer       || 0);
+  const [members,      setMembers]      = useStateB(initial?.members      || []);
+  const [routing,      setRouting]      = useStateB(initial?.routing      || "round-robin");
+  const [calId,        setCalId]        = useStateB(initial?.calId        || writableCalendars[0]?.id || "");
+  const [customMembers,setCustomMembers]= useStateB([]);
+  const [addingMember, setAddingMember] = useStateB(false);
+  const [newName,      setNewName]      = useStateB("");
+  const [newEmail,     setNewEmail]     = useStateB("");
+  const [newRole,      setNewRole]      = useStateB("");
+  const [step,         setStep]         = useStateB(0);
+
+  const allMembers = [...TEAM_MEMBERS, ...customMembers];
 
   const toggleDay    = (d) => setDays(ds => ds.includes(d) ? ds.filter(x=>x!==d) : [...ds, d].sort((a,b)=>a-b));
   const toggleMember = (id) => setMembers(ms => ms.includes(id) ? ms.filter(x=>x!==id) : [...ms, id]);
 
+  const addMember = () => {
+    if (!newName.trim() && !newEmail.trim()) return;
+    const m = {
+      id: "cm-" + Math.random().toString(36).slice(2, 8),
+      name: newName.trim() || newEmail.split("@")[0] || "New member",
+      role: newRole.trim() || "External",
+      email: newEmail.trim(),
+    };
+    setCustomMembers(ms => [...ms, m]);
+    setMembers(ms => [...ms, m.id]);
+    setNewName(""); setNewEmail(""); setNewRole("");
+    setAddingMember(false);
+  };
+
   const autoSlug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 
   const handleSave = () => {
-    onSave({ name: name || "Untitled link", slug: slug || autoSlug(name) || "my-link", type, duration, color, desc, location, days, startH, endH, buffer, members, routing });
+    onSave({ name: name || "Untitled link", slug: slug || autoSlug(name) || "my-link", type, duration, color, desc, location, days, startH, endH, buffer, members, routing, calId });
   };
 
   const HOURS = Array.from({length:24}, (_,i) => ({ value:i, label: i === 0 ? "12 am" : i < 12 ? `${i} am` : i === 12 ? "12 pm" : `${i-12} pm` }));
@@ -290,11 +341,35 @@ function CreateBookingModal({ initial, onClose, onSave }) {
             <div className="help">{type==="personal" ? "Only you can accept bookings." : "Select members and choose how bookings are routed."}</div>
           </div>
 
+          {/* Calendar destination picker */}
+          <div>
+            <label className="label">Calendar for bookings</label>
+            <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+              {writableCalendars.map(cal => (
+                <button key={cal.id} onClick={() => setCalId(cal.id)} style={{
+                  display:"flex", alignItems:"center", gap:10, padding:"9px 12px",
+                  background: calId===cal.id ? "color-mix(in oklab, var(--accent) 6%, var(--surface))" : "var(--surface)",
+                  border: `1.5px solid ${calId===cal.id ? "var(--accent)" : "var(--border)"}`,
+                  borderRadius:8, textAlign:"left", transition:"all 0.12s",
+                }}>
+                  <span style={{ width:10, height:10, borderRadius:"50%", background:cal.color, flexShrink:0 }} />
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:13, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{cal.name}</div>
+                    <div style={{ fontSize:11, color:"var(--muted)" }}>{cal.accountLabel} · {cal.accountEmail}</div>
+                  </div>
+                  {calId===cal.id && <I.Check size={13} style={{ color:"var(--accent)", flexShrink:0 }} />}
+                </button>
+              ))}
+            </div>
+            <div className="help">New bookings will be added to this calendar automatically.</div>
+          </div>
+
+          {/* Team members section */}
           {type === "team" && (
             <div>
               <label className="label">Team members</label>
-              <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:12 }}>
-                {TEAM_MEMBERS.map(m => {
+              <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:8 }}>
+                {allMembers.map(m => {
                   const on = members.includes(m.id);
                   return (
                     <button key={m.id} onClick={() => toggleMember(m.id)} style={{
@@ -306,7 +381,7 @@ function CreateBookingModal({ initial, onClose, onSave }) {
                       <Avatar name={m.name} size={28} />
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:13, fontWeight:500 }}>{m.name}</div>
-                        <div style={{ fontSize:11, color:"var(--muted)" }}>{m.role} · {m.email}</div>
+                        <div style={{ fontSize:11, color:"var(--muted)" }}>{m.role} · {m.email || "No email"}</div>
                       </div>
                       <div style={{ width:18, height:18, borderRadius:4, border:`2px solid ${on ? "var(--accent)" : "var(--border)"}`, background: on ? "var(--accent)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.12s" }}>
                         {on && <I.Check size={11} style={{ color:"var(--ink-on-accent)" }} />}
@@ -315,8 +390,35 @@ function CreateBookingModal({ initial, onClose, onSave }) {
                   );
                 })}
               </div>
+
+              {/* Add new member form */}
+              {addingMember ? (
+                <div style={{ border:"1.5px solid var(--border)", borderRadius:9, padding:"14px", background:"var(--surface)", marginBottom:8 }}>
+                  <div style={{ fontSize:12, fontWeight:600, marginBottom:10, color:"var(--text)" }}>Invite new member</div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                    <input className="input" placeholder="Full name" value={newName} onChange={e => setNewName(e.target.value)} />
+                    <input className="input" placeholder="Email address" type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} />
+                    <input className="input" placeholder="Role (optional, e.g. Sales)" value={newRole} onChange={e => setNewRole(e.target.value)} />
+                    <div style={{ display:"flex", gap:6 }}>
+                      <button className="btn primary" onClick={addMember} style={{ flex:1 }}
+                        disabled={!newName.trim() && !newEmail.trim()}>
+                        <I.Plus size={12} /> Add &amp; select
+                      </button>
+                      <button className="btn" onClick={() => { setAddingMember(false); setNewName(""); setNewEmail(""); setNewRole(""); }}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <button className="btn" onClick={() => setAddingMember(true)}
+                  style={{ width:"100%", justifyContent:"center", marginBottom:8 }}>
+                  <I.Plus size={13} /> Invite new member
+                </button>
+              )}
+
               {members.length > 0 && (
-                <div>
+                <div style={{ marginTop:4 }}>
                   <label className="label">Booking routing</label>
                   <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                     {ROUTING_OPTIONS.map(r => (
@@ -461,9 +563,16 @@ function CreateBookingModal({ initial, onClose, onSave }) {
             <div style={{ height:4, background:color, borderRadius:2, marginBottom:12 }} />
             <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>{name || "Your booking link"}</div>
             <div style={{ fontSize:12, color:"var(--dim)", marginBottom:10 }}>{desc || "No description yet."}</div>
-            <div style={{ display:"flex", gap:8 }}>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               <span style={{ padding:"4px 10px", background:"var(--surface-hi)", borderRadius:20, fontSize:11 }}>{duration} min</span>
               <span style={{ padding:"4px 10px", background:"var(--surface-hi)", borderRadius:20, fontSize:11 }}>{LOCATION_OPTIONS.find(l=>l.id===location)?.label}</span>
+              {calId && (() => {
+                for (const acc of state.accounts) {
+                  const c = acc.calendars.find(c => c.id === calId);
+                  if (c) return <span key="cal" style={{ display:"flex", alignItems:"center", gap:5, padding:"4px 10px", background:"var(--surface-hi)", borderRadius:20, fontSize:11 }}><span style={{ width:6, height:6, borderRadius:"50%", background:c.color }} />{c.name}</span>;
+                }
+                return null;
+              })()}
             </div>
           </div>
         </div>
